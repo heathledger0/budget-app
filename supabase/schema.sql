@@ -8,11 +8,19 @@ create table if not exists entries (
   category_id text not null,
   year int not null,
   month int not null check (month between 1 and 12),
+  day int not null default 1 check (day between 1 and 31),
   label text not null,
   amount numeric not null,
   memo text,
+  series_id uuid,
   created_at timestamptz not null default now()
 );
+
+-- Migrations for projects created before these columns existed: adds them if missing.
+alter table entries add column if not exists day int not null default 1 check (day between 1 and 31);
+alter table entries add column if not exists series_id uuid;
+
+create index if not exists entries_series_idx on entries (series_id);
 
 create table if not exists budgets (
   id uuid primary key default gen_random_uuid(),

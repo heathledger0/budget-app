@@ -23,6 +23,24 @@ export function categoryTotal(
     .reduce((sum, e) => sum + e.amount, 0);
 }
 
+export function daysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate();
+}
+
+export function categoryDayTotal(
+  entries: Entry[],
+  categoryId: string,
+  year: number,
+  month: number,
+  day: number,
+): number {
+  return entries
+    .filter(
+      (e) => e.categoryId === categoryId && e.year === year && e.month === month && e.day === day,
+    )
+    .reduce((sum, e) => sum + e.amount, 0);
+}
+
 export function categoryAnnualTotal(entries: Entry[], categoryId: string, year: number): number {
   return entries
     .filter((e) => e.categoryId === categoryId && e.year === year)
@@ -38,6 +56,19 @@ export function sectionTotal(
   const ids = new Set(categoriesBySection(section).map((c) => c.id));
   return entries
     .filter((e) => ids.has(e.categoryId) && e.year === year && e.month === month)
+    .reduce((sum, e) => sum + e.amount, 0);
+}
+
+export function sectionDayTotal(
+  entries: Entry[],
+  section: SectionType,
+  year: number,
+  month: number,
+  day: number,
+): number {
+  const ids = new Set(categoriesBySection(section).map((c) => c.id));
+  return entries
+    .filter((e) => ids.has(e.categoryId) && e.year === year && e.month === month && e.day === day)
     .reduce((sum, e) => sum + e.amount, 0);
 }
 

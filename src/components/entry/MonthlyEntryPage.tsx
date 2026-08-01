@@ -1,13 +1,20 @@
+import { useEffect } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { monthlySummary } from '../../lib/calculations';
+import { daysInMonth, monthlySummary } from '../../lib/calculations';
 import Money from '../common/Money';
+import Calendar from './Calendar';
 import SectionCard from './SectionCard';
 
 export default function MonthlyEntryPage() {
-  const { year, month } = useSelectionStore();
+  const { year, month, day, setDay } = useSelectionStore();
   const entries = useBudgetStore((s) => s.entries);
   const summary = monthlySummary(entries, year, month);
+
+  useEffect(() => {
+    const max = daysInMonth(year, month);
+    if (day > max) setDay(max);
+  }, [year, month, day, setDay]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -16,15 +23,23 @@ export default function MonthlyEntryPage() {
           {year}년 {month}월 가계부 입력
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          카테고리별로 항목명과 금액을 입력하고 추가 버튼을 누르세요. 여러 건을 자유롭게 추가할 수 있습니다.
+          달력에서 날짜를 선택하고, 카테고리별로 항목명과 금액을 입력해 추가하세요.
         </p>
       </div>
 
+      <Calendar year={year} month={month} selectedDay={day} onSelectDay={setDay} entries={entries} />
+
+      <div>
+        <h2 className="text-lg font-bold text-gray-900">
+          {year}년 {month}월 {day}일 입력
+        </h2>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2">
-        <SectionCard section="income" year={year} month={month} />
-        <SectionCard section="fixed" year={year} month={month} />
-        <SectionCard section="saving" year={year} month={month} />
-        <SectionCard section="variable" year={year} month={month} />
+        <SectionCard section="income" year={year} month={month} day={day} />
+        <SectionCard section="fixed" year={year} month={month} day={day} />
+        <SectionCard section="saving" year={year} month={month} day={day} />
+        <SectionCard section="variable" year={year} month={month} day={day} />
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-4">

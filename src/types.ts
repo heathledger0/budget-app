@@ -11,9 +11,11 @@ export interface Entry {
   categoryId: string;
   year: number;
   month: number; // 1-12
+  day: number; // 1-31
   label: string;
   amount: number;
   memo?: string;
+  seriesId?: string; // links recurring 고정지출 entries created together across months
 }
 
 export interface Budget {

@@ -9,9 +9,11 @@ interface EntryRow {
   category_id: string;
   year: number;
   month: number;
+  day: number;
   label: string;
   amount: number;
   memo: string | null;
+  series_id: string | null;
 }
 interface BudgetRow {
   id: string;
@@ -34,9 +36,11 @@ const fromEntryRow = (row: EntryRow): Entry => ({
   categoryId: row.category_id,
   year: row.year,
   month: row.month,
+  day: row.day,
   label: row.label,
   amount: Number(row.amount),
   memo: row.memo ?? undefined,
+  seriesId: row.series_id ?? undefined,
 });
 
 const fromBudgetRow = (row: BudgetRow): Budget => ({
@@ -65,8 +69,13 @@ interface BudgetState {
   loadAll: () => Promise<void>;
   reset: () => void;
 
-  addEntry: (entry: Omit<Entry, 'id'>) => Promise<void>;
-  updateEntry: (id: string, patch: Omit<Entry, 'id'>) => Promise<void>;
+  addEntry: (entry: Omit<Entry, 'id' | 'seriesId'>) => Promise<void>;
+  addFixedSeriesEntry: (entry: Omit<Entry, 'id' | 'seriesId'>) => Promise<void>;
+  updateEntry: (id: string, patch: Omit<Entry, 'id' | 'seriesId'>) => Promise<void>;
+  updateEntrySeriesForward: (
+    entry: Entry,
+    patch: { label: string; amount: number; memo?: string },
+  ) => Promise<void>;
   removeEntry: (id: string) => Promise<void>;
 
   setBudget: (categoryId: string, year: number, month: number, amount: number) => Promise<void>;
@@ -111,6 +120,7 @@ export const useBudgetStore = create<BudgetState>((set) => ({
         category_id: entry.categoryId,
         year: entry.year,
         month: entry.month,
+        day: entry.day,
         label: entry.label,
         amount: entry.amount,
         memo: entry.memo ?? null,
@@ -121,6 +131,27 @@ export const useBudgetStore = create<BudgetState>((set) => ({
     set((state) => ({ entries: [...state.entries, fromEntryRow(data as EntryRow)] }));
   },
 
+  addFixedSeriesEntry: async (entry) => {
+    if (!supabase) return;
+    const seriesId = crypto.randomUUID();
+    const months = [];
+    for (let m = entry.month; m <= 12; m++) months.push(m);
+    const rows = months.map((m) => ({
+      category_id: entry.categoryId,
+      year: entry.year,
+      month: m,
+      day: entry.day,
+      label: entry.label,
+      amount: entry.amount,
+      memo: entry.memo ?? null,
+      series_id: seriesId,
+    }));
+    const { data, error } = await supabase.from('entries').insert(rows).select();
+    if (error || !data) return console.error(error);
+    const newEntries = (data as EntryRow[]).map(fromEntryRow);
+    set((state) => ({ entries: [...state.entries, ...newEntries] }));
+  },
+
   updateEntry: async (id, patch) => {
     if (!supabase) return;
     const { data, error } = await supabase
@@ -129,6 +160,7 @@ export const useBudgetStore = create<BudgetState>((set) => ({
         category_id: patch.categoryId,
         year: patch.year,
         month: patch.month,
+        day: patch.day,
         label: patch.label,
         amount: patch.amount,
         memo: patch.memo ?? null,
@@ -139,6 +171,59 @@ export const useBudgetStore = create<BudgetState>((set) => ({
     if (error || !data) return console.error(error);
     const updated = fromEntryRow(data as EntryRow);
     set((state) => ({ entries: state.entries.map((e) => (e.id === id ? updated : e)) }));
+  },
+
+  updateEntrySeriesForward: async (entry, patch) => {
+    if (!supabase) return;
+    if (entry.seriesId) {
+      const { data, error } = await supabase
+        .from('entries')
+        .update({ label: patch.label, amount: patch.amount, memo: patch.memo ?? null })
+        .eq('series_id', entry.seriesId)
+        .eq('year', entry.year)
+        .gte('month', entry.month)
+        .select();
+      if (error || !data) return console.error(error);
+      const updatedRows = (data as EntryRow[]).map(fromEntryRow);
+      set((state) => ({
+        entries: state.entries.map((e) => updatedRows.find((u) => u.id === e.id) ?? e),
+      }));
+      return;
+    }
+
+    // Legacy entry with no series yet: turn it into the start of a new one.
+    const seriesId = crypto.randomUUID();
+    const { data: updatedRow, error: updateError } = await supabase
+      .from('entries')
+      .update({ label: patch.label, amount: patch.amount, memo: patch.memo ?? null, series_id: seriesId })
+      .eq('id', entry.id)
+      .select()
+      .single();
+    if (updateError || !updatedRow) return console.error(updateError);
+
+    const months = [];
+    for (let m = entry.month + 1; m <= 12; m++) months.push(m);
+    let insertedRows: EntryRow[] = [];
+    if (months.length > 0) {
+      const rows = months.map((m) => ({
+        category_id: entry.categoryId,
+        year: entry.year,
+        month: m,
+        day: entry.day,
+        label: patch.label,
+        amount: patch.amount,
+        memo: patch.memo ?? null,
+        series_id: seriesId,
+      }));
+      const { data: inserted, error: insertError } = await supabase.from('entries').insert(rows).select();
+      if (insertError) console.error(insertError);
+      insertedRows = (inserted as EntryRow[]) ?? [];
+    }
+    const updated = fromEntryRow(updatedRow as EntryRow);
+    const newEntries = insertedRows.map(fromEntryRow);
+    set((state) => ({
+      entries: [...state.entries.map((e) => (e.id === entry.id ? updated : e)), ...newEntries],
+    }));
   },
 
   removeEntry: async (id) => {
