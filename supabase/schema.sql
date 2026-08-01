@@ -55,3 +55,27 @@ create policy "budgets_owner" on budgets
 drop policy if exists "card_entries_owner" on card_entries;
 create policy "card_entries_owner" on card_entries
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Realtime: push INSERT/UPDATE/DELETE events so other open tabs/devices update live.
+-- RLS still applies to Realtime, so each user only receives events for their own rows.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'entries'
+  ) then
+    alter publication supabase_realtime add table entries;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'budgets'
+  ) then
+    alter publication supabase_realtime add table budgets;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'card_entries'
+  ) then
+    alter publication supabase_realtime add table card_entries;
+  end if;
+end $$;

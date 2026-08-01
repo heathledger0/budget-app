@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from './useAuthStore';
 import type { Budget, CardEntry, Entry } from '../types';
@@ -218,11 +219,87 @@ export const useBudgetStore = create<BudgetState>((set) => ({
   },
 }));
 
-// Load data whenever a user session becomes available; clear it on sign-out.
+let channel: RealtimeChannel | null = null;
+
+function applyEntryChange(payload: RealtimePostgresChangesPayload<EntryRow>) {
+  const { entries } = useBudgetStore.getState();
+  if (payload.eventType === 'INSERT') {
+    const row = payload.new as EntryRow;
+    if (entries.some((e) => e.id === row.id)) return;
+    useBudgetStore.setState({ entries: [...entries, fromEntryRow(row)] });
+  } else if (payload.eventType === 'UPDATE') {
+    const row = payload.new as EntryRow;
+    useBudgetStore.setState({
+      entries: entries.map((e) => (e.id === row.id ? fromEntryRow(row) : e)),
+    });
+  } else if (payload.eventType === 'DELETE') {
+    const oldRow = payload.old as { id: string };
+    useBudgetStore.setState({ entries: entries.filter((e) => e.id !== oldRow.id) });
+  }
+}
+
+function applyBudgetChange(payload: RealtimePostgresChangesPayload<BudgetRow>) {
+  const { budgets } = useBudgetStore.getState();
+  if (payload.eventType === 'INSERT') {
+    const row = payload.new as BudgetRow;
+    if (budgets.some((b) => b.id === row.id)) return;
+    useBudgetStore.setState({ budgets: [...budgets, fromBudgetRow(row)] });
+  } else if (payload.eventType === 'UPDATE') {
+    const row = payload.new as BudgetRow;
+    useBudgetStore.setState({
+      budgets: budgets.map((b) => (b.id === row.id ? fromBudgetRow(row) : b)),
+    });
+  } else if (payload.eventType === 'DELETE') {
+    const oldRow = payload.old as { id: string };
+    useBudgetStore.setState({ budgets: budgets.filter((b) => b.id !== oldRow.id) });
+  }
+}
+
+function applyCardEntryChange(payload: RealtimePostgresChangesPayload<CardEntryRow>) {
+  const { cardEntries } = useBudgetStore.getState();
+  if (payload.eventType === 'INSERT') {
+    const row = payload.new as CardEntryRow;
+    if (cardEntries.some((e) => e.id === row.id)) return;
+    useBudgetStore.setState({ cardEntries: [...cardEntries, fromCardEntryRow(row)] });
+  } else if (payload.eventType === 'UPDATE') {
+    const row = payload.new as CardEntryRow;
+    useBudgetStore.setState({
+      cardEntries: cardEntries.map((e) => (e.id === row.id ? fromCardEntryRow(row) : e)),
+    });
+  } else if (payload.eventType === 'DELETE') {
+    const oldRow = payload.old as { id: string };
+    useBudgetStore.setState({ cardEntries: cardEntries.filter((e) => e.id !== oldRow.id) });
+  }
+}
+
+function subscribeRealtime(userId: string) {
+  if (!supabase || channel) return;
+  channel = supabase
+    .channel(`budget-app:${userId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, applyEntryChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'budgets' }, applyBudgetChange)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'card_entries' },
+      applyCardEntryChange,
+    )
+    .subscribe();
+}
+
+function unsubscribeRealtime() {
+  if (channel) {
+    supabase?.removeChannel(channel);
+    channel = null;
+  }
+}
+
+// Load data + start live sync whenever a user session becomes available; tear down on sign-out.
 useAuthStore.subscribe((state, prevState) => {
   if (state.session && state.session.user.id !== prevState.session?.user.id) {
     useBudgetStore.getState().loadAll();
+    subscribeRealtime(state.session.user.id);
   } else if (!state.session && prevState.session) {
     useBudgetStore.getState().reset();
+    unsubscribeRealtime();
   }
 });
