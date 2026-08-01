@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import type { Entry } from '../../types';
 import { daysInMonth } from '../../lib/calculations';
+import { categoryById } from '../../constants/categories';
+import Money from '../common/Money';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -22,13 +24,32 @@ export default function Calendar({
   const today = new Date();
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month;
 
-  const daysWithEntries = useMemo(() => {
+  const monthEntries = useMemo(
+    () => entries.filter((e) => e.year === year && e.month === month),
+    [entries, year, month],
+  );
+
+  const fixedEntriesThisMonth = useMemo(
+    () =>
+      monthEntries
+        .filter((e) => categoryById(e.categoryId)?.section === 'fixed')
+        .sort((a, b) => a.day - b.day || a.label.localeCompare(b.label)),
+    [monthEntries],
+  );
+
+  const fixedDays = useMemo(() => {
     const set = new Set<number>();
-    for (const e of entries) {
-      if (e.year === year && e.month === month) set.add(e.day);
+    for (const e of fixedEntriesThisMonth) set.add(e.day);
+    return set;
+  }, [fixedEntriesThisMonth]);
+
+  const otherDays = useMemo(() => {
+    const set = new Set<number>();
+    for (const e of monthEntries) {
+      if (categoryById(e.categoryId)?.section !== 'fixed') set.add(e.day);
     }
     return set;
-  }, [entries, year, month]);
+  }, [monthEntries]);
 
   const cells = useMemo(() => {
     const arr: (number | null)[] = Array.from({ length: firstWeekday }, () => null);
@@ -61,17 +82,50 @@ export default function Calendar({
               }`}
             >
               <span>{day}</span>
-              {daysWithEntries.has(day) && (
+              {fixedDays.has(day) ? (
                 <span
                   className={`-mt-1 h-1 w-1 rounded-full ${
-                    day === selectedDay ? 'bg-white' : 'bg-blue-500'
+                    day === selectedDay ? 'bg-white' : 'bg-orange-500'
                   }`}
                 />
+              ) : (
+                otherDays.has(day) && (
+                  <span
+                    className={`-mt-1 h-1 w-1 rounded-full ${
+                      day === selectedDay ? 'bg-white' : 'bg-blue-500'
+                    }`}
+                  />
+                )
               )}
             </button>
           ),
         )}
       </div>
+
+      {fixedEntriesThisMonth.length > 0 && (
+        <div className="mt-3 border-t border-gray-100 pt-3">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />이 달 고정지출 일정
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {fixedEntriesThisMonth.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => onSelectDay(e.day)}
+                className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
+                  e.day === selectedDay
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                }`}
+              >
+                {e.day}일 {categoryById(e.categoryId)?.name} · {e.label} ·{' '}
+                <Money amount={e.amount} className={e.day === selectedDay ? 'text-white' : ''} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { SectionType } from '../../types';
+import { SECTION_LABELS, SECTION_ORDER } from '../../constants/categories';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { daysInMonth, monthlySummary } from '../../lib/calculations';
+import { daysInMonth, monthlySummary, sectionDayTotal } from '../../lib/calculations';
 import Money from '../common/Money';
 import Calendar from './Calendar';
 import SectionCard from './SectionCard';
@@ -10,6 +12,7 @@ export default function MonthlyEntryPage() {
   const { year, month, day, setDay } = useSelectionStore();
   const entries = useBudgetStore((s) => s.entries);
   const summary = monthlySummary(entries, year, month);
+  const [activeSection, setActiveSection] = useState<SectionType>('income');
 
   useEffect(() => {
     const max = daysInMonth(year, month);
@@ -35,11 +38,31 @@ export default function MonthlyEntryPage() {
         </h2>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <SectionCard section="income" year={year} month={month} day={day} />
-        <SectionCard section="fixed" year={year} month={month} day={day} />
-        <SectionCard section="saving" year={year} month={month} day={day} />
-        <SectionCard section="variable" year={year} month={month} day={day} />
+      <div className="flex gap-2 overflow-x-auto">
+        {SECTION_ORDER.map((section) => {
+          const sectionTotal = sectionDayTotal(entries, section, year, month, day);
+          return (
+            <button
+              key={section}
+              type="button"
+              onClick={() => setActiveSection(section)}
+              className={`flex shrink-0 flex-col items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                activeSection === section
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+              }`}
+            >
+              <span>{SECTION_LABELS[section]}</span>
+              <span className={`text-xs ${activeSection === section ? 'text-blue-100' : 'text-gray-400'}`}>
+                <Money amount={sectionTotal} className={activeSection === section ? 'text-blue-100' : ''} />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="max-w-2xl">
+        <SectionCard section={activeSection} year={year} month={month} day={day} />
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-4">
