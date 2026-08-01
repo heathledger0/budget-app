@@ -119,7 +119,8 @@ export default function Calendar({
                     : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
                 }`}
               >
-                {e.day}일 {categoryById(e.categoryId)?.name} · {e.label} ·{' '}
+                {e.day}일 {categoryById(e.categoryId)?.emoji} {categoryById(e.categoryId)?.name} ·{' '}
+                {e.label} ·{' '}
                 <Money amount={e.amount} className={e.day === selectedDay ? 'text-white' : ''} />
               </button>
             ))}

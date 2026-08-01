@@ -53,7 +53,9 @@ export default function CategoryRow({
   return (
     <div className="border-b border-gray-100 py-2 last:border-b-0">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-800">{category.name}</span>
+        <span className="text-sm font-medium text-gray-800">
+          {category.emoji} {category.name}
+        </span>
         <span className="text-sm font-semibold">
           <Money amount={total} />
         </span>

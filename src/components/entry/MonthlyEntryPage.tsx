@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { SectionType } from '../../types';
-import { SECTION_LABELS, SECTION_ORDER } from '../../constants/categories';
+import { SECTION_EMOJI, SECTION_LABELS, SECTION_ORDER } from '../../constants/categories';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { daysInMonth, monthlySummary, sectionDayTotal } from '../../lib/calculations';
@@ -52,7 +52,9 @@ export default function MonthlyEntryPage() {
                   : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
               }`}
             >
-              <span>{SECTION_LABELS[section]}</span>
+              <span>
+                {SECTION_EMOJI[section]} {SECTION_LABELS[section]}
+              </span>
               <span className={`text-xs ${activeSection === section ? 'text-blue-100' : 'text-gray-400'}`}>
                 <Money amount={sectionTotal} className={activeSection === section ? 'text-blue-100' : ''} />
               </span>

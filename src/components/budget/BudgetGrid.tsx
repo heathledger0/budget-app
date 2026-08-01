@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { SectionType } from '../../types';
-import { SECTION_LABELS, categoriesBySection } from '../../constants/categories';
+import { SECTION_EMOJI, SECTION_LABELS, categoriesBySection } from '../../constants/categories';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { budgetFor } from '../../lib/calculations';
 
@@ -41,7 +41,7 @@ export default function BudgetGrid({ section, year }: { section: SectionType; ye
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
       <h2 className="mb-2 text-base font-bold text-gray-900">
-        {SECTION_LABELS[section]} — 월별 예산 입력
+        {SECTION_EMOJI[section]} {SECTION_LABELS[section]} — 월별 예산 입력
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[980px] table-fixed border-collapse text-xs">
@@ -65,7 +65,7 @@ export default function BudgetGrid({ section, year }: { section: SectionType; ye
             {categories.map((cat) => (
               <tr key={cat.id} className="border-t border-gray-100">
                 <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-2 py-1 font-medium text-gray-700">
-                  {cat.name}
+                  {cat.emoji} {cat.name}
                 </td>
                 {MONTHS.map((m) => (
                   <td key={m} className="px-1 py-1">

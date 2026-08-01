@@ -114,7 +114,7 @@ export function annualExpenseByCategory(entries: Entry[], year: number): Categor
   );
   const totals = expenseCategories.map((c) => ({
     categoryId: c.id,
-    name: c.name,
+    name: `${c.emoji} ${c.name}`,
     total: categoryAnnualTotal(entries, c.id, year),
   }));
   const grandTotal = totals.reduce((sum, t) => sum + t.total, 0);

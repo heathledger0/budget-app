@@ -4,6 +4,7 @@ export interface CategoryDef {
   id: string;
   name: string;
   section: SectionType;
+  emoji: string;
 }
 
 export interface Entry {

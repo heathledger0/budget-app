@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { SectionType } from '../../types';
-import { SECTION_LABELS } from '../../constants/categories';
+import { SECTION_EMOJI, SECTION_LABELS } from '../../constants/categories';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import BudgetGrid from './BudgetGrid';
 import BudgetComparisonTable from './BudgetComparisonTable';
@@ -33,7 +33,7 @@ export default function BudgetPage() {
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
             }`}
           >
-            {SECTION_LABELS[section]}
+            {SECTION_EMOJI[section]} {SECTION_LABELS[section]}
           </button>
         ))}
       </div>

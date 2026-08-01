@@ -1,5 +1,5 @@
 import type { SectionType } from '../../types';
-import { SECTION_LABELS, categoriesBySection } from '../../constants/categories';
+import { SECTION_EMOJI, SECTION_LABELS, categoriesBySection } from '../../constants/categories';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { budgetComparison, sectionBudgetTotal, sectionTotal } from '../../lib/calculations';
 import { formatPercent } from '../../lib/format';
@@ -24,7 +24,7 @@ export default function BudgetComparisonTable({
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
       <h2 className="mb-2 text-base font-bold text-gray-900">
-        {SECTION_LABELS[section]} — {month}월 예산 대비 실적
+        {SECTION_EMOJI[section]} {SECTION_LABELS[section]} — {month}월 예산 대비 실적
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[520px] border-collapse text-sm">
@@ -43,7 +43,9 @@ export default function BudgetComparisonTable({
               const over = c.achievement > 1;
               return (
                 <tr key={cat.id} className={`border-b border-gray-50 ${over ? 'bg-red-50' : ''}`}>
-                  <td className="py-1.5 font-medium text-gray-700">{cat.name}</td>
+                  <td className="py-1.5 font-medium text-gray-700">
+                    {cat.emoji} {cat.name}
+                  </td>
                   <td className="py-1.5 text-right">
                     <Money amount={c.budget} />
                   </td>
@@ -62,7 +64,9 @@ export default function BudgetComparisonTable({
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-gray-300 font-bold">
-              <td className="py-1.5">{SECTION_LABELS[section]} 합계</td>
+              <td className="py-1.5">
+                {SECTION_EMOJI[section]} {SECTION_LABELS[section]} 합계
+              </td>
               <td className="py-1.5 text-right">
                 <Money amount={sectionBudget} />
               </td>

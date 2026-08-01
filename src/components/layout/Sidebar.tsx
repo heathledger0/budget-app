@@ -3,11 +3,11 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { supabase } from '../../lib/supabaseClient';
 
 const NAV_ITEMS = [
-  { to: '/', label: '대시보드', end: true },
-  { to: '/entry', label: '월별 입력' },
-  { to: '/budget', label: '예산 비교' },
-  { to: '/report', label: '연간 리포트' },
-  { to: '/card', label: '신용카드' },
+  { to: '/', label: '대시보드', emoji: '📊', end: true },
+  { to: '/entry', label: '월별 입력', emoji: '📝' },
+  { to: '/budget', label: '예산 비교', emoji: '⚖️' },
+  { to: '/report', label: '연간 리포트', emoji: '📈' },
+  { to: '/card', label: '신용카드', emoji: '💳' },
 ];
 
 export default function Sidebar() {
@@ -29,7 +29,7 @@ export default function Sidebar() {
             }`
           }
         >
-          {item.label}
+          {item.emoji} {item.label}
         </NavLink>
       ))}
       {email && (

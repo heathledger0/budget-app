@@ -1,5 +1,5 @@
 import type { SectionType } from '../../types';
-import { SECTION_LABELS, categoriesBySection } from '../../constants/categories';
+import { SECTION_EMOJI, SECTION_LABELS, categoriesBySection } from '../../constants/categories';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { sectionAnnualTotal } from '../../lib/calculations';
 import { formatPercent } from '../../lib/format';
@@ -43,7 +43,9 @@ export default function AnnualBudgetSummary({ year }: { year: number }) {
               const over = budgetTotal > 0 && actualTotal / budgetTotal > 1;
               return (
                 <tr key={section} className={`border-b border-gray-50 ${over ? 'bg-red-50' : ''}`}>
-                  <td className="py-1.5 font-medium text-gray-700">{SECTION_LABELS[section]}</td>
+                  <td className="py-1.5 font-medium text-gray-700">
+                    {SECTION_EMOJI[section]} {SECTION_LABELS[section]}
+                  </td>
                   <td className="py-1.5 text-right">
                     <Money amount={budgetTotal} />
                   </td>
