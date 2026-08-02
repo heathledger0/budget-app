@@ -15,8 +15,8 @@ export default function BudgetPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">예산 비교</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">예산 비교</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           카테고리마다 월별로 다른 예산을 입력하고, 실제 지출과 비교합니다. 예산을 초과하면 빨간색으로 표시됩니다.
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function BudgetPage() {
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
               activeSection === section
                 ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700'
             }`}
           >
             {SECTION_EMOJI[section]} {SECTION_LABELS[section]}

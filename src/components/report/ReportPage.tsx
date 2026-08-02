@@ -13,8 +13,8 @@ export default function ReportPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">{year}년 연간 리포트</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{year}년 연간 리포트</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           카테고리별 연간 지출 비중과 월별 요약, 연간 합계·월평균을 확인하세요.
         </p>
       </div>

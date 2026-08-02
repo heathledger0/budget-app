@@ -22,12 +22,14 @@ export default function AnnualBudgetSummary({ year }: { year: number }) {
   const budgets = useBudgetStore((s) => s.budgets);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h2 className="mb-2 text-base font-bold text-gray-900">{year}년 연간 예산 대비 실적</h2>
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <h2 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
+        {year}년 연간 예산 대비 실적
+      </h2>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[520px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left text-xs text-gray-500">
+            <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-xs text-gray-500 dark:text-gray-400">
               <th className="py-1">섹션</th>
               <th className="py-1 text-right">연간 예산</th>
               <th className="py-1 text-right">연간 실제</th>
@@ -42,8 +44,11 @@ export default function AnnualBudgetSummary({ year }: { year: number }) {
               const actualTotal = sectionAnnualTotal(entries, section, year);
               const over = budgetTotal > 0 && actualTotal / budgetTotal > 1;
               return (
-                <tr key={section} className={`border-b border-gray-50 ${over ? 'bg-red-50' : ''}`}>
-                  <td className="py-1.5 font-medium text-gray-700">
+                <tr
+                  key={section}
+                  className={`border-b border-gray-50 dark:border-gray-700 ${over ? 'bg-red-50 dark:bg-red-950/40' : ''}`}
+                >
+                  <td className="py-1.5 font-medium text-gray-700 dark:text-gray-300">
                     {SECTION_EMOJI[section]} {SECTION_LABELS[section]}
                   </td>
                   <td className="py-1.5 text-right">
@@ -55,7 +60,9 @@ export default function AnnualBudgetSummary({ year }: { year: number }) {
                   <td className="py-1.5 text-right">
                     <Money amount={budgetTotal - actualTotal} />
                   </td>
-                  <td className={`py-1.5 text-right font-semibold ${over ? 'text-red-600' : ''}`}>
+                  <td
+                    className={`py-1.5 text-right font-semibold ${over ? 'text-red-600 dark:text-red-400' : ''}`}
+                  >
                     {budgetTotal > 0 ? formatPercent(actualTotal / budgetTotal) : '-'}
                   </td>
                 </tr>

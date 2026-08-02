@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -9,6 +15,11 @@ body {
   font-family: 'Pretendard', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
   background: #f3f4f6;
   color: #111827;
+}
+
+.dark body {
+  background: #111827;
+  color: #f3f4f6;
 }
 
 * {

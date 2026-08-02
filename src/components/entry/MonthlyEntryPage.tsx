@@ -22,10 +22,10 @@ export default function MonthlyEntryPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           {year}년 {month}월 가계부 입력
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           달력에서 날짜를 선택하고, 카테고리별로 항목명과 금액을 입력해 추가하세요.
         </p>
       </div>
@@ -33,7 +33,7 @@ export default function MonthlyEntryPage() {
       <Calendar year={year} month={month} selectedDay={day} onSelectDay={setDay} entries={entries} />
 
       <div>
-        <h2 className="text-lg font-bold text-gray-900">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
           {year}년 {month}월 {day}일 입력
         </h2>
       </div>
@@ -49,13 +49,15 @@ export default function MonthlyEntryPage() {
               className={`flex shrink-0 flex-col items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 activeSection === section
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700'
               }`}
             >
               <span>
                 {SECTION_EMOJI[section]} {SECTION_LABELS[section]}
               </span>
-              <span className={`text-xs ${activeSection === section ? 'text-blue-100' : 'text-gray-400'}`}>
+              <span
+                className={`text-xs ${activeSection === section ? 'text-blue-100' : 'text-gray-400 dark:text-gray-500'}`}
+              >
                 <Money amount={sectionTotal} className={activeSection === section ? 'text-blue-100' : ''} />
               </span>
             </button>
@@ -67,8 +69,8 @@ export default function MonthlyEntryPage() {
         <SectionCard section={activeSection} year={year} month={month} day={day} />
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="mb-2 text-base font-bold text-gray-900">이번 달 요약</h2>
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <h2 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">이번 달 요약</h2>
         <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 md:grid-cols-6">
           <SummaryItem label="수입 합계" amount={summary.income} />
           <SummaryItem label="고정지출 합계" amount={summary.fixed} />
@@ -92,8 +94,8 @@ function SummaryItem({
   emphasize?: boolean;
 }) {
   return (
-    <div className="rounded-md bg-gray-50 p-3">
-      <div className="text-xs text-gray-500">{label}</div>
+    <div className="rounded-md bg-gray-50 dark:bg-gray-700 p-3">
+      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
       <div className={`mt-1 font-semibold ${emphasize ? 'text-lg' : ''}`}>
         <Money amount={amount} />
       </div>

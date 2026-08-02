@@ -22,16 +22,16 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
   }
 
   return (
-    <div className="flex items-center gap-2 border-b border-gray-50 py-1.5 text-sm">
+    <div className="flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 py-1.5 text-sm">
       <input
-        className="min-w-0 flex-1 rounded border border-gray-200 px-2 py-1"
+        className="min-w-0 flex-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         onBlur={commit}
         placeholder="사용처"
       />
       <input
-        className="w-28 rounded border border-gray-200 px-2 py-1 text-right"
+        className="w-28 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         onBlur={commit}
@@ -39,7 +39,7 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
         placeholder="금액"
       />
       <input
-        className="hidden w-32 rounded border border-gray-200 px-2 py-1 text-gray-500 sm:block"
+        className="hidden w-32 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1 text-gray-500 dark:text-gray-400 sm:block"
         value={memo}
         onChange={(e) => setMemo(e.target.value)}
         onBlur={commit}
@@ -51,7 +51,7 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
       <button
         type="button"
         onClick={() => removeCardEntry(entry.id)}
-        className="shrink-0 rounded px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+        className="shrink-0 rounded px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:text-gray-500 dark:hover:bg-red-950 dark:hover:text-red-400"
         aria-label="삭제"
       >
         ×

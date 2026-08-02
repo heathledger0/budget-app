@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import type { CategoryShare } from '../../lib/calculations';
 import { formatPercent, formatWon } from '../../lib/format';
+import { useThemeStore } from '../../store/useThemeStore';
 
 const COLORS = [
   '#2563eb', '#f97316', '#10b981', '#a855f7', '#ef4444', '#06b6d4',
@@ -21,11 +22,19 @@ const COLORS = [
 ];
 
 export default function CategoryShareCharts({ data }: { data: CategoryShare[] }) {
+  const isDark = useThemeStore((s) => s.theme === 'dark');
+  const gridColor = isDark ? '#374151' : '#e5e7eb';
+  const tickColor = isDark ? '#9ca3af' : '#374151';
+  const tooltipStyle = {
+    backgroundColor: isDark ? '#1f2937' : '#fff',
+    border: `1px solid ${gridColor}`,
+    color: isDark ? '#f3f4f6' : '#111827',
+  };
   const sorted = [...data].filter((d) => d.total > 0).sort((a, b) => b.total - a.total);
 
   if (sorted.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 text-sm text-gray-500 dark:text-gray-400">
         표시할 지출 데이터가 없습니다.
       </div>
     );
@@ -33,15 +42,21 @@ export default function CategoryShareCharts({ data }: { data: CategoryShare[] })
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="mb-3 text-base font-bold text-gray-900">카테고리별 지출 (막대)</h2>
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <h2 className="mb-3 text-base font-bold text-gray-900 dark:text-gray-100">
+          카테고리별 지출 (막대)
+        </h2>
         <div className="h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={sorted} layout="vertical" margin={{ left: 24, right: 16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatWon(v)} />
-              <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(value) => formatWon(Number(value))} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis
+                type="number"
+                tick={{ fontSize: 11, fill: tickColor }}
+                tickFormatter={(v) => formatWon(v)}
+              />
+              <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11, fill: tickColor }} />
+              <Tooltip formatter={(value) => formatWon(Number(value))} contentStyle={tooltipStyle} />
               <Bar dataKey="total" name="연간 지출">
                 {sorted.map((entry, i) => (
                   <Cell key={entry.categoryId} fill={COLORS[i % COLORS.length]} />
@@ -52,8 +67,10 @@ export default function CategoryShareCharts({ data }: { data: CategoryShare[] })
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="mb-3 text-base font-bold text-gray-900">카테고리별 비중 (파이)</h2>
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <h2 className="mb-3 text-base font-bold text-gray-900 dark:text-gray-100">
+          카테고리별 비중 (파이)
+        </h2>
         <div className="h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -72,8 +89,8 @@ export default function CategoryShareCharts({ data }: { data: CategoryShare[] })
                   <Cell key={entry.categoryId} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => formatWon(Number(value))} />
-              <Legend />
+              <Tooltip formatter={(value) => formatWon(Number(value))} contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ color: tickColor }} />
             </PieChart>
           </ResponsiveContainer>
         </div>

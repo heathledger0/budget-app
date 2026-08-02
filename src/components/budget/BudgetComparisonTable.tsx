@@ -22,14 +22,14 @@ export default function BudgetComparisonTable({
   const sectionActual = sectionTotal(entries, section, year, month);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h2 className="mb-2 text-base font-bold text-gray-900">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <h2 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
         {SECTION_EMOJI[section]} {SECTION_LABELS[section]} — {month}월 예산 대비 실적
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[520px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left text-xs text-gray-500">
+            <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-xs text-gray-500 dark:text-gray-400">
               <th className="py-1">카테고리</th>
               <th className="py-1 text-right">예산</th>
               <th className="py-1 text-right">실제 지출</th>
@@ -42,8 +42,11 @@ export default function BudgetComparisonTable({
               const c = budgetComparison(entries, budgets, cat.id, year, month);
               const over = c.achievement > 1;
               return (
-                <tr key={cat.id} className={`border-b border-gray-50 ${over ? 'bg-red-50' : ''}`}>
-                  <td className="py-1.5 font-medium text-gray-700">
+                <tr
+                  key={cat.id}
+                  className={`border-b border-gray-50 dark:border-gray-700 ${over ? 'bg-red-50 dark:bg-red-950/40' : ''}`}
+                >
+                  <td className="py-1.5 font-medium text-gray-700 dark:text-gray-300">
                     {cat.emoji} {cat.name}
                   </td>
                   <td className="py-1.5 text-right">
@@ -55,7 +58,9 @@ export default function BudgetComparisonTable({
                   <td className="py-1.5 text-right">
                     <Money amount={c.diff} />
                   </td>
-                  <td className={`py-1.5 text-right font-semibold ${over ? 'text-red-600' : ''}`}>
+                  <td
+                    className={`py-1.5 text-right font-semibold ${over ? 'text-red-600 dark:text-red-400' : ''}`}
+                  >
                     {formatPercent(c.achievement)}
                   </td>
                 </tr>
@@ -63,7 +68,7 @@ export default function BudgetComparisonTable({
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-gray-300 font-bold">
+            <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
               <td className="py-1.5">
                 {SECTION_EMOJI[section]} {SECTION_LABELS[section]} 합계
               </td>
@@ -78,7 +83,9 @@ export default function BudgetComparisonTable({
               </td>
               <td
                 className={`py-1.5 text-right ${
-                  sectionBudget > 0 && sectionActual / sectionBudget > 1 ? 'text-red-600' : ''
+                  sectionBudget > 0 && sectionActual / sectionBudget > 1
+                    ? 'text-red-600 dark:text-red-400'
+                    : ''
                 }`}
               >
                 {sectionBudget > 0 ? formatPercent(sectionActual / sectionBudget) : '-'}

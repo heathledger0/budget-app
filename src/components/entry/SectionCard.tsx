@@ -21,9 +21,9 @@ export default function SectionCard({
   const total = sectionDayTotal(entries, section, year, month, day);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-base font-bold text-gray-900">
+        <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
           {SECTION_EMOJI[section]} {SECTION_LABELS[section]}
         </h2>
         <span className="text-base font-bold">

@@ -12,7 +12,7 @@ function App() {
   return (
     <AuthGate>
       <HashRouter>
-        <div className="flex min-h-screen flex-col md:flex-row bg-gray-50">
+        <div className="flex min-h-screen flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
           <Sidebar />
           <div className="flex flex-1 flex-col min-w-0">
             <Header />

@@ -58,8 +58,8 @@ export default function Calendar({
   }, [firstWeekday, total]);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <div className="mb-2 grid grid-cols-7 text-center text-xs text-gray-400">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div className="mb-2 grid grid-cols-7 text-center text-xs text-gray-400 dark:text-gray-500">
         {WEEKDAYS.map((w) => (
           <div key={w}>{w}</div>
         ))}
@@ -77,8 +77,8 @@ export default function Calendar({
                 day === selectedDay
                   ? 'bg-blue-600 text-white font-semibold'
                   : isCurrentMonth && day === today.getDate()
-                    ? 'ring-1 ring-blue-400 text-gray-900'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'ring-1 ring-blue-400 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
             >
               <span>{day}</span>
@@ -103,8 +103,8 @@ export default function Calendar({
       </div>
 
       {fixedEntriesThisMonth.length > 0 && (
-        <div className="mt-3 border-t border-gray-100 pt-3">
-          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+        <div className="mt-3 border-t border-gray-100 dark:border-gray-700 pt-3">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
             <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />이 달 고정지출 일정
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -116,7 +116,7 @@ export default function Calendar({
                 className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
                   e.day === selectedDay
                     ? 'bg-orange-500 text-white'
-                    : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                    : 'bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-300 dark:hover:bg-orange-900'
                 }`}
               >
                 {e.day}일 {categoryById(e.categoryId)?.emoji} {categoryById(e.categoryId)?.name} ·{' '}

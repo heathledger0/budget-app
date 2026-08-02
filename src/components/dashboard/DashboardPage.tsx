@@ -13,8 +13,8 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">대시보드</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">대시보드</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {year}년 {month}월 기준 요약과 {year}년 전체 추이입니다.
         </p>
       </div>

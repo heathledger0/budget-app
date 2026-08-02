@@ -11,13 +11,13 @@ export default function AuthPage() {
 
   if (!isSupabaseConfigured || !supabase) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600">
-          <h1 className="mb-2 text-lg font-bold text-gray-900">Supabase 설정이 필요합니다</h1>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-md rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 text-sm text-gray-600 dark:text-gray-300">
+          <h1 className="mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">Supabase 설정이 필요합니다</h1>
           <p>
-            로그인 기능을 쓰려면 <code className="rounded bg-gray-100 px-1">.env</code>에{' '}
-            <code className="rounded bg-gray-100 px-1">VITE_SUPABASE_URL</code>과{' '}
-            <code className="rounded bg-gray-100 px-1">VITE_SUPABASE_ANON_KEY</code>를 설정해야 합니다.
+            로그인 기능을 쓰려면 <code className="rounded bg-gray-100 dark:bg-gray-700 px-1">.env</code>에{' '}
+            <code className="rounded bg-gray-100 dark:bg-gray-700 px-1">VITE_SUPABASE_URL</code>과{' '}
+            <code className="rounded bg-gray-100 dark:bg-gray-700 px-1">VITE_SUPABASE_ANON_KEY</code>를 설정해야 합니다.
             자세한 방법은 README를 참고하세요.
           </p>
         </div>
@@ -48,39 +48,39 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6"
+        className="w-full max-w-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6"
       >
-        <h1 className="mb-1 text-lg font-bold text-gray-900">가계부 관리</h1>
-        <p className="mb-4 text-sm text-gray-500">
+        <h1 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">가계부 관리</h1>
+        <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
           {mode === 'signIn' ? '로그인하고 내 가계부를 확인하세요.' : '이메일로 새 계정을 만드세요.'}
         </p>
 
-        <label className="mb-1 block text-xs font-medium text-gray-600">이메일</label>
+        <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">이메일</label>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mb-3 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="mb-3 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
           placeholder="you@example.com"
         />
 
-        <label className="mb-1 block text-xs font-medium text-gray-600">비밀번호</label>
+        <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">비밀번호</label>
         <input
           type="password"
           required
           minLength={6}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-4 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          className="mb-4 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
           placeholder="6자 이상"
         />
 
-        {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-        {info && <p className="mb-3 text-sm text-emerald-600">{info}</p>}
+        {error && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {info && <p className="mb-3 text-sm text-emerald-600 dark:text-emerald-400">{info}</p>}
 
         <button
           type="submit"
@@ -97,7 +97,7 @@ export default function AuthPage() {
             setError(null);
             setInfo(null);
           }}
-          className="mt-3 w-full text-center text-xs text-gray-500 hover:text-gray-700"
+          className="mt-3 w-full text-center text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           {mode === 'signIn' ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
         </button>

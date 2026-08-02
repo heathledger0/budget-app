@@ -22,7 +22,7 @@ function BudgetCell({
 
   return (
     <input
-      className="w-full min-w-[72px] rounded border border-gray-200 px-1 py-1 text-right text-xs"
+      className="w-full min-w-[72px] rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-1 py-1 text-right text-xs"
       value={value}
       placeholder="0"
       inputMode="numeric"
@@ -39,8 +39,8 @@ export default function BudgetGrid({ section, year }: { section: SectionType; ye
   const categories = categoriesBySection(section);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h2 className="mb-2 text-base font-bold text-gray-900">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <h2 className="mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
         {SECTION_EMOJI[section]} {SECTION_LABELS[section]} — 월별 예산 입력
       </h2>
       <div className="overflow-x-auto">
@@ -52,8 +52,10 @@ export default function BudgetGrid({ section, year }: { section: SectionType; ye
             ))}
           </colgroup>
           <thead>
-            <tr className="text-gray-500">
-              <th className="sticky left-0 z-10 whitespace-nowrap bg-white px-2 py-1 text-left">카테고리</th>
+            <tr className="text-gray-500 dark:text-gray-400">
+              <th className="sticky left-0 z-10 whitespace-nowrap bg-white dark:bg-gray-800 px-2 py-1 text-left">
+                카테고리
+              </th>
               {MONTHS.map((m) => (
                 <th key={m} className="px-1 py-1 text-center">
                   {m}월
@@ -63,8 +65,8 @@ export default function BudgetGrid({ section, year }: { section: SectionType; ye
           </thead>
           <tbody>
             {categories.map((cat) => (
-              <tr key={cat.id} className="border-t border-gray-100">
-                <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-2 py-1 font-medium text-gray-700">
+              <tr key={cat.id} className="border-t border-gray-100 dark:border-gray-700">
+                <td className="sticky left-0 z-10 whitespace-nowrap bg-white dark:bg-gray-800 px-2 py-1 font-medium text-gray-700 dark:text-gray-300">
                   {cat.emoji} {cat.name}
                 </td>
                 {MONTHS.map((m) => (

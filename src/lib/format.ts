@@ -5,7 +5,7 @@ export function formatWon(amount: number): string {
 }
 
 export function amountColorClass(amount: number): string {
-  return amount < 0 ? 'text-red-600' : '';
+  return amount < 0 ? 'text-red-600 dark:text-red-400' : '';
 }
 
 export function formatPercent(ratio: number): string {

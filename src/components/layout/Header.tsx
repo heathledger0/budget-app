@@ -1,5 +1,6 @@
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useThemeStore } from '../../store/useThemeStore';
 import { supabase } from '../../lib/supabaseClient';
 
 const YEAR_RANGE = 6;
@@ -7,24 +8,33 @@ const YEAR_RANGE = 6;
 export default function Header() {
   const { year, month, setYear, setMonth } = useSelectionStore();
   const email = useAuthStore((s) => s.session?.user.email);
+  const { theme, toggleTheme } = useThemeStore();
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: YEAR_RANGE }, (_, i) => currentYear - YEAR_RANGE + 2 + i);
 
   return (
-    <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
-      <div className="md:hidden text-lg font-bold text-gray-900">가계부 관리</div>
+    <header className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+      <div className="md:hidden text-lg font-bold text-gray-900 dark:text-gray-100">가계부 관리</div>
       <div className="ml-auto flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="다크모드 전환"
+          className="md:hidden rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm text-gray-600 dark:text-gray-300"
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         {email && (
           <button
             type="button"
             onClick={() => supabase?.auth.signOut()}
-            className="md:hidden rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-600"
+            className="md:hidden rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm text-gray-600 dark:text-gray-300"
           >
             로그아웃
           </button>
         )}
         <select
-          className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+          className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-sm"
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
         >
@@ -35,7 +45,7 @@ export default function Header() {
           ))}
         </select>
         <select
-          className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+          className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-sm"
           value={month}
           onChange={(e) => setMonth(Number(e.target.value))}
         >
