@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/report', label: '연간 리포트', emoji: '📈' },
   { to: '/card', label: '신용카드', emoji: '💳' },
   { to: '/search', label: '검색', emoji: '🔍' },
+  { to: '/household', label: '가구 공유', emoji: '🏠' },
 ];
 
 export default function Sidebar() {

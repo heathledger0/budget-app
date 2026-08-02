@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from './useAuthStore';
+import { useHouseholdStore } from './useHouseholdStore';
 import type { Budget, CardEntry, Entry } from '../types';
 
 interface EntryRow {
@@ -236,12 +237,13 @@ export const useBudgetStore = create<BudgetState>((set) => ({
   setBudget: async (categoryId, year, month, amount) => {
     if (!supabase) return;
     const userId = useAuthStore.getState().session?.user.id;
-    if (!userId) return;
+    const householdId = useHouseholdStore.getState().householdId;
+    if (!userId || !householdId) return;
     const { data, error } = await supabase
       .from('budgets')
       .upsert(
-        { user_id: userId, category_id: categoryId, year, month, amount },
-        { onConflict: 'user_id,category_id,year,month' },
+        { user_id: userId, household_id: householdId, category_id: categoryId, year, month, amount },
+        { onConflict: 'household_id,category_id,year,month' },
       )
       .select()
       .single();
