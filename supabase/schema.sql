@@ -339,3 +339,39 @@ begin
     alter publication supabase_realtime add table household_invites;
   end if;
 end $$;
+
+-- ============================================================================
+-- 저축 목표
+-- 저축/투자 섹션의 카테고리 하나에 목표 금액을 걸어두면, 목표를 만든 시점(연/월) 이후
+-- 그 카테고리에 입력된 금액의 누적 합계로 진행률을 보여줍니다. 가구 단위로 공유됩니다.
+-- ============================================================================
+
+create table if not exists savings_goals (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null default my_household_id() references households (id) on delete cascade,
+  category_id text not null,
+  name text not null,
+  target_amount numeric not null check (target_amount > 0),
+  start_year int not null,
+  start_month int not null check (start_month between 1 and 12),
+  target_date date,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists savings_goals_household_idx on savings_goals (household_id);
+
+alter table savings_goals enable row level security;
+
+drop policy if exists "savings_goals_household" on savings_goals;
+create policy "savings_goals_household" on savings_goals
+  for all using (household_id = my_household_id()) with check (household_id = my_household_id());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'savings_goals'
+  ) then
+    alter publication supabase_realtime add table savings_goals;
+  end if;
+end $$;

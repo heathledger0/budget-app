@@ -3,7 +3,7 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from './useAuthStore';
 import { useHouseholdStore } from './useHouseholdStore';
-import type { Budget, CardEntry, Entry } from '../types';
+import type { Budget, CardEntry, Entry, SavingsGoal } from '../types';
 
 interface EntryRow {
   id: string;
@@ -30,6 +30,15 @@ interface CardEntryRow {
   label: string;
   amount: number;
   memo: string | null;
+}
+interface SavingsGoalRow {
+  id: string;
+  category_id: string;
+  name: string;
+  target_amount: number;
+  start_year: number;
+  start_month: number;
+  target_date: string | null;
 }
 
 const fromEntryRow = (row: EntryRow): Entry => ({
@@ -61,10 +70,21 @@ const fromCardEntryRow = (row: CardEntryRow): CardEntry => ({
   memo: row.memo ?? undefined,
 });
 
+const fromSavingsGoalRow = (row: SavingsGoalRow): SavingsGoal => ({
+  id: row.id,
+  categoryId: row.category_id,
+  name: row.name,
+  targetAmount: Number(row.target_amount),
+  startYear: row.start_year,
+  startMonth: row.start_month,
+  targetDate: row.target_date ?? undefined,
+});
+
 interface BudgetState {
   entries: Entry[];
   budgets: Budget[];
   cardEntries: CardEntry[];
+  savingsGoals: SavingsGoal[];
   loading: boolean;
 
   loadAll: () => Promise<void>;
@@ -84,34 +104,41 @@ interface BudgetState {
   addCardEntry: (entry: Omit<CardEntry, 'id'>) => Promise<void>;
   updateCardEntry: (id: string, patch: Omit<CardEntry, 'id'>) => Promise<void>;
   removeCardEntry: (id: string) => Promise<void>;
+
+  addSavingsGoal: (goal: Omit<SavingsGoal, 'id'>) => Promise<void>;
+  removeSavingsGoal: (id: string) => Promise<void>;
 }
 
 export const useBudgetStore = create<BudgetState>((set) => ({
   entries: [],
   budgets: [],
   cardEntries: [],
+  savingsGoals: [],
   loading: false,
 
   loadAll: async () => {
     if (!supabase) return;
     set({ loading: true });
-    const [entriesRes, budgetsRes, cardRes] = await Promise.all([
+    const [entriesRes, budgetsRes, cardRes, goalsRes] = await Promise.all([
       supabase.from('entries').select('*'),
       supabase.from('budgets').select('*'),
       supabase.from('card_entries').select('*'),
+      supabase.from('savings_goals').select('*'),
     ]);
     if (entriesRes.error) console.error(entriesRes.error);
     if (budgetsRes.error) console.error(budgetsRes.error);
     if (cardRes.error) console.error(cardRes.error);
+    if (goalsRes.error) console.error(goalsRes.error);
     set({
       entries: ((entriesRes.data as EntryRow[]) ?? []).map(fromEntryRow),
       budgets: ((budgetsRes.data as BudgetRow[]) ?? []).map(fromBudgetRow),
       cardEntries: ((cardRes.data as CardEntryRow[]) ?? []).map(fromCardEntryRow),
+      savingsGoals: ((goalsRes.data as SavingsGoalRow[]) ?? []).map(fromSavingsGoalRow),
       loading: false,
     });
   },
 
-  reset: () => set({ entries: [], budgets: [], cardEntries: [] }),
+  reset: () => set({ entries: [], budgets: [], cardEntries: [], savingsGoals: [] }),
 
   addEntry: async (entry) => {
     if (!supabase) return;
@@ -304,6 +331,33 @@ export const useBudgetStore = create<BudgetState>((set) => ({
     if (error) return console.error(error);
     set((state) => ({ cardEntries: state.cardEntries.filter((e) => e.id !== id) }));
   },
+
+  addSavingsGoal: async (goal) => {
+    if (!supabase) return;
+    const { data, error } = await supabase
+      .from('savings_goals')
+      .insert({
+        category_id: goal.categoryId,
+        name: goal.name,
+        target_amount: goal.targetAmount,
+        start_year: goal.startYear,
+        start_month: goal.startMonth,
+        target_date: goal.targetDate ?? null,
+      })
+      .select()
+      .single();
+    if (error || !data) return console.error(error);
+    set((state) => ({
+      savingsGoals: [...state.savingsGoals, fromSavingsGoalRow(data as SavingsGoalRow)],
+    }));
+  },
+
+  removeSavingsGoal: async (id) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('savings_goals').delete().eq('id', id);
+    if (error) return console.error(error);
+    set((state) => ({ savingsGoals: state.savingsGoals.filter((g) => g.id !== id) }));
+  },
 }));
 
 let channel: RealtimeChannel | null = null;
@@ -359,6 +413,23 @@ function applyCardEntryChange(payload: RealtimePostgresChangesPayload<CardEntryR
   }
 }
 
+function applySavingsGoalChange(payload: RealtimePostgresChangesPayload<SavingsGoalRow>) {
+  const { savingsGoals } = useBudgetStore.getState();
+  if (payload.eventType === 'INSERT') {
+    const row = payload.new as SavingsGoalRow;
+    if (savingsGoals.some((g) => g.id === row.id)) return;
+    useBudgetStore.setState({ savingsGoals: [...savingsGoals, fromSavingsGoalRow(row)] });
+  } else if (payload.eventType === 'UPDATE') {
+    const row = payload.new as SavingsGoalRow;
+    useBudgetStore.setState({
+      savingsGoals: savingsGoals.map((g) => (g.id === row.id ? fromSavingsGoalRow(row) : g)),
+    });
+  } else if (payload.eventType === 'DELETE') {
+    const oldRow = payload.old as { id: string };
+    useBudgetStore.setState({ savingsGoals: savingsGoals.filter((g) => g.id !== oldRow.id) });
+  }
+}
+
 function subscribeRealtime(userId: string) {
   if (!supabase || channel) return;
   channel = supabase
@@ -369,6 +440,11 @@ function subscribeRealtime(userId: string) {
       'postgres_changes',
       { event: '*', schema: 'public', table: 'card_entries' },
       applyCardEntryChange,
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'savings_goals' },
+      applySavingsGoalChange,
     )
     .subscribe();
 }

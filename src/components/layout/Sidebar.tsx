@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/card', label: '신용카드', emoji: '💳' },
   { to: '/search', label: '검색', emoji: '🔍' },
   { to: '/household', label: '가구 공유', emoji: '🏠' },
+  { to: '/savings', label: '저축 목표', emoji: '🎯' },
 ];
 
 export default function Sidebar() {

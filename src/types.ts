@@ -35,3 +35,13 @@ export interface CardEntry {
   amount: number;
   memo?: string;
 }
+
+export interface SavingsGoal {
+  id: string;
+  categoryId: string;
+  name: string;
+  targetAmount: number;
+  startYear: number;
+  startMonth: number;
+  targetDate?: string; // YYYY-MM-DD
+}

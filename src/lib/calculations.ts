@@ -1,5 +1,5 @@
 import { CATEGORIES, categoriesBySection } from '../constants/categories';
-import type { Budget, Entry, SectionType } from '../types';
+import type { Budget, Entry, SavingsGoal, SectionType } from '../types';
 
 export interface MonthlySummary {
   year: number;
@@ -182,4 +182,15 @@ export function categoryAnnualBudget(budgets: Budget[], categoryId: string, year
   return budgets
     .filter((b) => b.categoryId === categoryId && b.year === year)
     .reduce((sum, b) => sum + b.amount, 0);
+}
+
+// 목표를 만든 연/월 이후 해당 카테고리에 쌓인 금액의 누적 합계입니다.
+export function savingsGoalSaved(entries: Entry[], goal: SavingsGoal): number {
+  return entries
+    .filter(
+      (e) =>
+        e.categoryId === goal.categoryId &&
+        (e.year > goal.startYear || (e.year === goal.startYear && e.month >= goal.startMonth)),
+    )
+    .reduce((sum, e) => sum + e.amount, 0);
 }

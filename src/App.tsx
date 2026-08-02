@@ -9,6 +9,7 @@ import ReportPage from './components/report/ReportPage';
 import CreditCardPage from './components/card/CreditCardPage';
 import SearchPage from './components/search/SearchPage';
 import HouseholdPage from './components/household/HouseholdPage';
+import SavingsGoalsPage from './components/savings/SavingsGoalsPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/card" element={<CreditCardPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/household" element={<HouseholdPage />} />
+                <Route path="/savings" element={<SavingsGoalsPage />} />
               </Routes>
             </main>
           </div>
