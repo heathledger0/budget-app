@@ -3,6 +3,7 @@ import { useBudgetStore } from '../../store/useBudgetStore';
 import { monthlySummary, yearSummaries } from '../../lib/calculations';
 import SummaryCards from './SummaryCards';
 import YearTrendChart from './YearTrendChart';
+import AlertsPanel from './AlertsPanel';
 
 export default function DashboardPage() {
   const { year, month } = useSelectionStore();
@@ -19,6 +20,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      <AlertsPanel year={year} month={month} />
       <SummaryCards summary={summary} />
       <YearTrendChart data={yearData} />
     </div>
