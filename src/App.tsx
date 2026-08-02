@@ -7,6 +7,7 @@ import MonthlyEntryPage from './components/entry/MonthlyEntryPage';
 import BudgetPage from './components/budget/BudgetPage';
 import ReportPage from './components/report/ReportPage';
 import CreditCardPage from './components/card/CreditCardPage';
+import SearchPage from './components/search/SearchPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
                 <Route path="/budget" element={<BudgetPage />} />
                 <Route path="/report" element={<ReportPage />} />
                 <Route path="/card" element={<CreditCardPage />} />
+                <Route path="/search" element={<SearchPage />} />
               </Routes>
             </main>
           </div>

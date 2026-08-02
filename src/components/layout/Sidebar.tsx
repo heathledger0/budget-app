@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/budget', label: '예산 비교', emoji: '⚖️' },
   { to: '/report', label: '연간 리포트', emoji: '📈' },
   { to: '/card', label: '신용카드', emoji: '💳' },
+  { to: '/search', label: '검색', emoji: '🔍' },
 ];
 
 export default function Sidebar() {
