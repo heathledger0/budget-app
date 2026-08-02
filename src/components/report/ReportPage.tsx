@@ -3,6 +3,7 @@ import { useBudgetStore } from '../../store/useBudgetStore';
 import { annualExpenseByCategory, yearSummaries } from '../../lib/calculations';
 import CategoryShareCharts from './CategoryShareCharts';
 import MonthlySummaryTable from './MonthlySummaryTable';
+import ExportSection from './ExportSection';
 
 export default function ReportPage() {
   const { year } = useSelectionStore();
@@ -21,6 +22,7 @@ export default function ReportPage() {
 
       <CategoryShareCharts data={categoryShare} />
       <MonthlySummaryTable data={yearData} />
+      <ExportSection />
     </div>
   );
 }
