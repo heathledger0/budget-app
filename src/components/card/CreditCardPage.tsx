@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import Money from '../common/Money';
@@ -10,6 +10,7 @@ export default function CreditCardPage() {
   const addCardEntry = useBudgetStore((s) => s.addCardEntry);
   const [newLabel, setNewLabel] = useState('');
   const [newAmount, setNewAmount] = useState('');
+  const submittingRef = useRef(false);
 
   const monthEntries = cardEntries
     .filter((e) => e.year === year && e.month === month)
@@ -20,12 +21,18 @@ export default function CreditCardPage() {
     .reduce((sum, e) => sum + e.amount, 0);
   const allTimeTotal = cardEntries.reduce((sum, e) => sum + e.amount, 0);
 
-  function handleAdd() {
+  async function handleAdd() {
+    if (submittingRef.current) return;
     const parsed = Number(newAmount.replace(/,/g, ''));
     if (!newAmount || !Number.isFinite(parsed) || parsed === 0) return;
-    addCardEntry({ year, month, label: newLabel.trim() || '카드 사용', amount: parsed });
-    setNewLabel('');
-    setNewAmount('');
+    submittingRef.current = true;
+    try {
+      await addCardEntry({ year, month, label: newLabel.trim() || '카드 사용', amount: parsed });
+      setNewLabel('');
+      setNewAmount('');
+    } finally {
+      submittingRef.current = false;
+    }
   }
 
   return (
@@ -71,7 +78,7 @@ export default function CreditCardPage() {
             placeholder="사용처 (선택)"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleAdd()}
           />
           <input
             className="w-28 rounded border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right text-sm"
