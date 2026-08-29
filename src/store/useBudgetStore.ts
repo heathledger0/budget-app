@@ -91,6 +91,7 @@ interface BudgetState {
   reset: () => void;
 
   addEntry: (entry: Omit<Entry, 'id' | 'seriesId'>) => Promise<void>;
+  importEntries: (entries: Omit<Entry, 'id' | 'seriesId'>[]) => Promise<number>;
   addFixedSeriesEntry: (entry: Omit<Entry, 'id' | 'seriesId'>) => Promise<void>;
   updateEntry: (id: string, patch: Omit<Entry, 'id' | 'seriesId'>) => Promise<void>;
   updateEntrySeriesForward: (
@@ -157,6 +158,32 @@ export const useBudgetStore = create<BudgetState>((set) => ({
       .single();
     if (error || !data) return console.error(error);
     set((state) => ({ entries: [...state.entries, fromEntryRow(data as EntryRow)] }));
+  },
+
+  importEntries: async (entries) => {
+    if (!supabase || entries.length === 0) return 0;
+    const CHUNK_SIZE = 500;
+    const inserted: EntryRow[] = [];
+    for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+      const chunk = entries.slice(i, i + CHUNK_SIZE).map((entry) => ({
+        category_id: entry.categoryId,
+        year: entry.year,
+        month: entry.month,
+        day: entry.day,
+        label: entry.label,
+        amount: entry.amount,
+        memo: entry.memo ?? null,
+      }));
+      const { data, error } = await supabase.from('entries').insert(chunk).select();
+      if (error) {
+        console.error(error);
+        continue;
+      }
+      inserted.push(...((data as EntryRow[]) ?? []));
+    }
+    const newEntries = inserted.map(fromEntryRow);
+    set((state) => ({ entries: [...state.entries, ...newEntries] }));
+    return newEntries.length;
   },
 
   addFixedSeriesEntry: async (entry) => {

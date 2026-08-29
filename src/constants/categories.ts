@@ -50,6 +50,7 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 'tax', name: '세금', section: 'variable', emoji: '🧾' },
   { id: 'food', name: '식비', section: 'variable', emoji: '🍚' },
   { id: 'cafe', name: '카페', section: 'variable', emoji: '☕' },
+  { id: 'convenienceStore', name: '편의점', section: 'variable', emoji: '🏪' },
   { id: 'daily', name: '생필품', section: 'variable', emoji: '🧴' },
   { id: 'events', name: '경조사비', section: 'variable', emoji: '💐' },
   { id: 'transport', name: '교통비', section: 'variable', emoji: '🚌' },
@@ -66,4 +67,19 @@ export function categoriesBySection(section: SectionType): CategoryDef[] {
 
 export function categoryById(id: string): CategoryDef | undefined {
   return CATEGORIES.find((c) => c.id === id);
+}
+
+export function sectionByLabel(label: string): SectionType | undefined {
+  return SECTION_ORDER.find((section) => SECTION_LABELS[section] === label);
+}
+
+export function categoriesByName(name: string): CategoryDef[] {
+  return CATEGORIES.filter((c) => c.name === name);
+}
+
+export function categoryByNameAndSection(
+  name: string,
+  section: SectionType,
+): CategoryDef | undefined {
+  return CATEGORIES.find((c) => c.name === name && c.section === section);
 }

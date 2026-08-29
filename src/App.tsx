@@ -6,6 +6,7 @@ import DashboardPage from './components/dashboard/DashboardPage';
 import MonthlyEntryPage from './components/entry/MonthlyEntryPage';
 import BudgetPage from './components/budget/BudgetPage';
 import ReportPage from './components/report/ReportPage';
+import MonthlyReportPage from './components/report/MonthlyReportPage';
 import CreditCardPage from './components/card/CreditCardPage';
 import SearchPage from './components/search/SearchPage';
 import HouseholdPage from './components/household/HouseholdPage';
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/entry" element={<MonthlyEntryPage />} />
                 <Route path="/budget" element={<BudgetPage />} />
+                <Route path="/monthly-report" element={<MonthlyReportPage />} />
                 <Route path="/report" element={<ReportPage />} />
                 <Route path="/card" element={<CreditCardPage />} />
                 <Route path="/search" element={<SearchPage />} />

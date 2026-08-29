@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { CategoryDef } from '../../types';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { categoryDayTotal } from '../../lib/calculations';
@@ -22,6 +22,7 @@ export default function CategoryRow({
   const [newLabel, setNewLabel] = useState('');
   const [newAmount, setNewAmount] = useState('');
   const isFixed = category.section === 'fixed';
+  const submittingRef = useRef(false);
 
   const categoryEntries = entries
     .filter(
@@ -30,24 +31,30 @@ export default function CategoryRow({
     .sort((a, b) => a.label.localeCompare(b.label));
   const total = categoryDayTotal(entries, category.id, year, month, day);
 
-  function handleAdd() {
+  async function handleAdd() {
+    if (submittingRef.current) return;
     const parsed = Number(newAmount.replace(/,/g, ''));
     if (!newAmount || !Number.isFinite(parsed) || parsed === 0) return;
-    const payload = {
-      categoryId: category.id,
-      year,
-      month,
-      day,
-      label: newLabel.trim() || category.name,
-      amount: parsed,
-    };
-    if (isFixed) {
-      addFixedSeriesEntry(payload);
-    } else {
-      addEntry(payload);
+    submittingRef.current = true;
+    try {
+      const payload = {
+        categoryId: category.id,
+        year,
+        month,
+        day,
+        label: newLabel.trim() || category.name,
+        amount: parsed,
+      };
+      if (isFixed) {
+        await addFixedSeriesEntry(payload);
+      } else {
+        await addEntry(payload);
+      }
+      setNewLabel('');
+      setNewAmount('');
+    } finally {
+      submittingRef.current = false;
     }
-    setNewLabel('');
-    setNewAmount('');
   }
 
   return (
@@ -73,7 +80,7 @@ export default function CategoryRow({
           placeholder="항목명 (선택)"
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleAdd()}
         />
         <input
           className="w-28 rounded border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right text-sm"
