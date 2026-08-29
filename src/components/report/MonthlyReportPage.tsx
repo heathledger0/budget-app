@@ -39,7 +39,7 @@ export default function MonthlyReportPage() {
         prevLabel={`${prev.year}년 ${prev.month}월`}
       />
       <MonthDailyTrendChart data={dailyData} />
-      <CategoryShareCharts data={categoryShare} />
+      <CategoryShareCharts data={categoryShare} entries={entries} year={year} month={month} />
     </div>
   );
 }
