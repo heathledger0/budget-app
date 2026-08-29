@@ -124,6 +124,55 @@ export function annualExpenseByCategory(entries: Entry[], year: number): Categor
   }));
 }
 
+export function monthExpenseByCategory(
+  entries: Entry[],
+  year: number,
+  month: number,
+): CategoryShare[] {
+  const expenseCategories = CATEGORIES.filter(
+    (c) => c.section === 'fixed' || c.section === 'variable',
+  );
+  const totals = expenseCategories.map((c) => ({
+    categoryId: c.id,
+    name: `${c.emoji} ${c.name}`,
+    total: categoryTotal(entries, c.id, year, month),
+  }));
+  const grandTotal = totals.reduce((sum, t) => sum + t.total, 0);
+  return totals.map((t) => ({
+    ...t,
+    share: grandTotal > 0 ? t.total / grandTotal : 0,
+  }));
+}
+
+export interface DailySummary {
+  day: number;
+  income: number;
+  fixed: number;
+  saving: number;
+  variable: number;
+  totalExpense: number;
+  netBalance: number;
+}
+
+export function daySummary(entries: Entry[], year: number, month: number, day: number): DailySummary {
+  const income = sectionDayTotal(entries, 'income', year, month, day);
+  const fixed = sectionDayTotal(entries, 'fixed', year, month, day);
+  const saving = sectionDayTotal(entries, 'saving', year, month, day);
+  const variable = sectionDayTotal(entries, 'variable', year, month, day);
+  const totalExpense = fixed + saving + variable;
+  return { day, income, fixed, saving, variable, totalExpense, netBalance: income - totalExpense };
+}
+
+export function monthDailySummaries(entries: Entry[], year: number, month: number): DailySummary[] {
+  const days = daysInMonth(year, month);
+  return Array.from({ length: days }, (_, i) => daySummary(entries, year, month, i + 1));
+}
+
+// Previous calendar month, wrapping across the year boundary at January.
+export function previousMonth(year: number, month: number): { year: number; month: number } {
+  return month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
+}
+
 export interface BudgetComparison {
   categoryId: string;
   year: number;
