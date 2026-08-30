@@ -21,7 +21,7 @@ export default function ReportPage() {
         </p>
       </div>
 
-      <CategoryShareCharts data={categoryShare} />
+      <CategoryShareCharts data={categoryShare} entries={entries} year={year} />
       <MonthlySummaryTable data={yearData} />
       <ExportSection />
       <ImportSection />
