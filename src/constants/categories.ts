@@ -24,6 +24,7 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 'allowance', name: '용돈', section: 'income', emoji: '👛' },
   { id: 'interest', name: '이자', section: 'income', emoji: '🏦' },
   { id: 'insuranceRefund', name: '보험/환급/적금만기', section: 'income', emoji: '🎁' },
+  { id: 'depositRefund', name: '보증금 환급', section: 'income', emoji: '🏠', oneOff: true },
   { id: 'etcIncome', name: '기타', section: 'income', emoji: '➕' },
 
   // 고정지출
@@ -38,6 +39,7 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 'utilities', name: '공과금 및 기타', section: 'fixed', emoji: '💡' },
 
   // 저축/투자
+  { id: 'deposit', name: '보증금', section: 'saving', emoji: '🏠', oneOff: true },
   { id: 'housingSubscription', name: '주택청약', section: 'saving', emoji: '🏘️' },
   { id: 'installmentSaving', name: '적금', section: 'saving', emoji: '🐷' },
   { id: 'weddingSaving', name: '웨딩적금', section: 'saving', emoji: '💍' },
@@ -82,4 +84,10 @@ export function categoryByNameAndSection(
   section: SectionType,
 ): CategoryDef | undefined {
   return CATEGORIES.find((c) => c.name === name && c.section === section);
+}
+
+export const ONE_OFF_CATEGORY_IDS = new Set(CATEGORIES.filter((c) => c.oneOff).map((c) => c.id));
+
+export function isOneOffCategory(categoryId: string): boolean {
+  return ONE_OFF_CATEGORY_IDS.has(categoryId);
 }

@@ -5,6 +5,9 @@ export interface CategoryDef {
   name: string;
   section: SectionType;
   emoji: string;
+  // Large one-off lump sums (deposits, etc.) that can be toggled out of monthly/annual stats
+  // since a single entry would otherwise dwarf everything else in the period.
+  oneOff?: boolean;
 }
 
 export interface Entry {
