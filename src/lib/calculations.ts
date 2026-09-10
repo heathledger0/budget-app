@@ -1,5 +1,28 @@
 import { CATEGORIES, categoriesBySection } from '../constants/categories';
-import type { Budget, Entry, SavingsGoal, SectionType } from '../types';
+import type { Budget, CardEntry, Entry, SavingsGoal, SectionType } from '../types';
+
+// Card entries the user chose to categorize become synthetic Entry rows (day fixed at 1,
+// since card entries have no day) so every existing categoryTotal/sectionTotal-based
+// calculation picks them up automatically. Uncategorized card entries are left out entirely —
+// they stay purely in the card tracker's own running totals, exactly as before.
+export function categorizedCardEntries(cardEntries: CardEntry[]): Entry[] {
+  return cardEntries
+    .filter((c): c is CardEntry & { categoryId: string } => Boolean(c.categoryId))
+    .map((c) => ({
+      id: `card-${c.id}`,
+      categoryId: c.categoryId,
+      year: c.year,
+      month: c.month,
+      day: 1,
+      label: `💳 ${c.label}`,
+      amount: c.amount,
+      memo: c.memo,
+    }));
+}
+
+export function withCardEntries(entries: Entry[], cardEntries: CardEntry[]): Entry[] {
+  return [...entries, ...categorizedCardEntries(cardEntries)];
+}
 
 export interface MonthlySummary {
   year: number;

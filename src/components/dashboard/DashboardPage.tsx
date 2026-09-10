@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { monthlySummary, yearSummaries } from '../../lib/calculations';
+import { monthlySummary, withCardEntries, yearSummaries } from '../../lib/calculations';
 import SummaryCards from './SummaryCards';
 import YearTrendChart from './YearTrendChart';
 import AlertsPanel from './AlertsPanel';
@@ -8,8 +9,10 @@ import AlertsPanel from './AlertsPanel';
 export default function DashboardPage() {
   const { year, month } = useSelectionStore();
   const entries = useBudgetStore((s) => s.entries);
-  const summary = monthlySummary(entries, year, month);
-  const yearData = yearSummaries(entries, year);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
+  const allEntries = useMemo(() => withCardEntries(entries, cardEntries), [entries, cardEntries]);
+  const summary = monthlySummary(allEntries, year, month);
+  const yearData = yearSummaries(allEntries, year);
 
   return (
     <div className="flex flex-col gap-4">

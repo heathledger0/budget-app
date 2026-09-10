@@ -41,8 +41,12 @@ create table if not exists card_entries (
   label text not null,
   amount numeric not null,
   memo text,
+  category_id text,
   created_at timestamptz not null default now()
 );
+
+-- Migration for projects created before this column existed.
+alter table card_entries add column if not exists category_id text;
 
 create index if not exists entries_user_year_month_idx on entries (user_id, year, month);
 create index if not exists budgets_user_year_idx on budgets (user_id, year);

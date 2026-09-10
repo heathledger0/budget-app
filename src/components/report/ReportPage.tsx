@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { annualExpenseByCategory, yearSummaries } from '../../lib/calculations';
+import { annualExpenseByCategory, withCardEntries, yearSummaries } from '../../lib/calculations';
 import { isOneOffCategory } from '../../constants/categories';
 import CategoryShareCharts from './CategoryShareCharts';
 import MonthlySummaryTable from './MonthlySummaryTable';
@@ -11,12 +11,20 @@ import ImportSection from './ImportSection';
 export default function ReportPage() {
   const { year } = useSelectionStore();
   const entries = useBudgetStore((s) => s.entries);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
   const [excludeOneOff, setExcludeOneOff] = useState(true);
 
-  const hasOneOffThisYear = entries.some((e) => e.year === year && isOneOffCategory(e.categoryId));
+  const combinedEntries = useMemo(
+    () => withCardEntries(entries, cardEntries),
+    [entries, cardEntries],
+  );
+  const hasOneOffThisYear = combinedEntries.some(
+    (e) => e.year === year && isOneOffCategory(e.categoryId),
+  );
   const reportEntries = useMemo(
-    () => (excludeOneOff ? entries.filter((e) => !isOneOffCategory(e.categoryId)) : entries),
-    [entries, excludeOneOff],
+    () =>
+      excludeOneOff ? combinedEntries.filter((e) => !isOneOffCategory(e.categoryId)) : combinedEntries,
+    [combinedEntries, excludeOneOff],
   );
 
   const yearData = yearSummaries(reportEntries, year);

@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import type { SectionType } from '../../types';
 import { SECTION_EMOJI, SECTION_LABELS, categoriesBySection } from '../../constants/categories';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { budgetComparison, sectionBudgetTotal, sectionTotal } from '../../lib/calculations';
+import { budgetComparison, sectionBudgetTotal, sectionTotal, withCardEntries } from '../../lib/calculations';
 import { formatPercent } from '../../lib/format';
 import Money from '../common/Money';
 
@@ -15,11 +16,13 @@ export default function BudgetComparisonTable({
   month: number;
 }) {
   const entries = useBudgetStore((s) => s.entries);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
   const budgets = useBudgetStore((s) => s.budgets);
   const categories = categoriesBySection(section);
+  const allEntries = useMemo(() => withCardEntries(entries, cardEntries), [entries, cardEntries]);
 
   const sectionBudget = sectionBudgetTotal(budgets, section, year, month);
-  const sectionActual = sectionTotal(entries, section, year, month);
+  const sectionActual = sectionTotal(allEntries, section, year, month);
 
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
@@ -39,7 +42,7 @@ export default function BudgetComparisonTable({
           </thead>
           <tbody>
             {categories.map((cat) => {
-              const c = budgetComparison(entries, budgets, cat.id, year, month);
+              const c = budgetComparison(allEntries, budgets, cat.id, year, month);
               const over = c.achievement > 1;
               return (
                 <tr

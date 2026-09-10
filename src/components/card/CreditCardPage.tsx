@@ -3,6 +3,7 @@ import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import Money from '../common/Money';
 import CardEntryLine from './CardEntryLine';
+import CategorySelect from './CategorySelect';
 
 export default function CreditCardPage() {
   const { year, month } = useSelectionStore();
@@ -10,6 +11,7 @@ export default function CreditCardPage() {
   const addCardEntry = useBudgetStore((s) => s.addCardEntry);
   const [newLabel, setNewLabel] = useState('');
   const [newAmount, setNewAmount] = useState('');
+  const [newCategoryId, setNewCategoryId] = useState('');
   const submittingRef = useRef(false);
 
   const monthEntries = cardEntries
@@ -27,9 +29,16 @@ export default function CreditCardPage() {
     if (!newAmount || !Number.isFinite(parsed) || parsed === 0) return;
     submittingRef.current = true;
     try {
-      await addCardEntry({ year, month, label: newLabel.trim() || '카드 사용', amount: parsed });
+      await addCardEntry({
+        year,
+        month,
+        label: newLabel.trim() || '카드 사용',
+        amount: parsed,
+        categoryId: newCategoryId || undefined,
+      });
       setNewLabel('');
       setNewAmount('');
+      setNewCategoryId('');
     } finally {
       submittingRef.current = false;
     }
@@ -40,7 +49,9 @@ export default function CreditCardPage() {
       <div>
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">신용카드 트래커</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          카드를 쓸 때마다 누적 기록하는 별도 트래커입니다. 카테고리별 지출 합계에는 반영되지 않습니다.
+          카드를 쓸 때마다 누적 기록하는 별도 트래커입니다. 항목마다 카테고리를 고르면 그 지출이
+          해당 카테고리 합계·예산 비교에도 자동으로 반영되어, 월별 입력에 따로 적지 않아도 됩니다.
+          카테고리를 고르지 않으면 예전처럼 이 트래커에서만 누적됩니다.
         </p>
       </div>
 
@@ -72,7 +83,7 @@ export default function CreditCardPage() {
         {monthEntries.map((entry) => (
           <CardEntryLine key={entry.id} entry={entry} />
         ))}
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
           <input
             className="min-w-0 flex-1 rounded border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
             placeholder="사용처 (선택)"
@@ -87,6 +98,11 @@ export default function CreditCardPage() {
             value={newAmount}
             onChange={(e) => setNewAmount(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          />
+          <CategorySelect
+            value={newCategoryId}
+            onChange={setNewCategoryId}
+            className="rounded border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
           />
           <button
             type="button"

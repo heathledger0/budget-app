@@ -6,6 +6,7 @@ import {
   monthExpenseByCategory,
   monthlySummary,
   previousMonth,
+  withCardEntries,
 } from '../../lib/calculations';
 import { isOneOffCategory } from '../../constants/categories';
 import SummaryCards from '../dashboard/SummaryCards';
@@ -16,14 +17,20 @@ import CategoryShareCharts from './CategoryShareCharts';
 export default function MonthlyReportPage() {
   const { year, month } = useSelectionStore();
   const entries = useBudgetStore((s) => s.entries);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
   const [excludeOneOff, setExcludeOneOff] = useState(true);
 
-  const hasOneOffThisMonth = entries.some(
+  const combinedEntries = useMemo(
+    () => withCardEntries(entries, cardEntries),
+    [entries, cardEntries],
+  );
+  const hasOneOffThisMonth = combinedEntries.some(
     (e) => e.year === year && e.month === month && isOneOffCategory(e.categoryId),
   );
   const reportEntries = useMemo(
-    () => (excludeOneOff ? entries.filter((e) => !isOneOffCategory(e.categoryId)) : entries),
-    [entries, excludeOneOff],
+    () =>
+      excludeOneOff ? combinedEntries.filter((e) => !isOneOffCategory(e.categoryId)) : combinedEntries,
+    [combinedEntries, excludeOneOff],
   );
 
   const summary = monthlySummary(reportEntries, year, month);
