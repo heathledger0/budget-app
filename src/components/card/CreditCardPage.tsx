@@ -12,11 +12,12 @@ export default function CreditCardPage() {
   const [newLabel, setNewLabel] = useState('');
   const [newAmount, setNewAmount] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
+  const [newDay, setNewDay] = useState('');
   const submittingRef = useRef(false);
 
   const monthEntries = cardEntries
     .filter((e) => e.year === year && e.month === month)
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.label.localeCompare(b.label));
   const monthTotal = monthEntries.reduce((sum, e) => sum + e.amount, 0);
   const yearTotal = cardEntries
     .filter((e) => e.year === year)
@@ -27,6 +28,7 @@ export default function CreditCardPage() {
     if (submittingRef.current) return;
     const parsed = Number(newAmount.replace(/,/g, ''));
     if (!newAmount || !Number.isFinite(parsed) || parsed === 0) return;
+    const parsedDay = newDay ? Math.min(31, Math.max(1, Math.round(Number(newDay)))) : undefined;
     submittingRef.current = true;
     try {
       await addCardEntry({
@@ -35,10 +37,12 @@ export default function CreditCardPage() {
         label: newLabel.trim() || '카드 사용',
         amount: parsed,
         categoryId: newCategoryId || undefined,
+        day: Number.isFinite(parsedDay) ? parsedDay : undefined,
       });
       setNewLabel('');
       setNewAmount('');
       setNewCategoryId('');
+      setNewDay('');
     } finally {
       submittingRef.current = false;
     }
@@ -51,7 +55,8 @@ export default function CreditCardPage() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           카드를 쓸 때마다 누적 기록하는 별도 트래커입니다. 항목마다 카테고리를 고르면 그 지출이
           해당 카테고리 합계·예산 비교에도 자동으로 반영되어, 월별 입력에 따로 적지 않아도 됩니다.
-          카테고리를 고르지 않으면 예전처럼 이 트래커에서만 누적됩니다.
+          카테고리를 고르지 않으면 예전처럼 이 트래커에서만 누적됩니다. 일(날짜)은 선택 사항으로,
+          비워두면 월 단위로만 집계됩니다.
         </p>
       </div>
 
@@ -97,6 +102,17 @@ export default function CreditCardPage() {
             inputMode="numeric"
             value={newAmount}
             onChange={(e) => setNewAmount(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          />
+          <input
+            className="w-20 rounded border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right text-sm"
+            placeholder="일(선택)"
+            inputMode="numeric"
+            type="number"
+            min={1}
+            max={31}
+            value={newDay}
+            onChange={(e) => setNewDay(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           />
           <CategorySelect

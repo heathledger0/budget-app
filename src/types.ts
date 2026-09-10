@@ -41,6 +41,8 @@ export interface CardEntry {
   // instead of separately re-entering it as a lump "카드대금" entry. Left unset (undefined),
   // it stays purely in the card tracker's own running totals, as before.
   categoryId?: string;
+  // Optional day-of-month (1-31). Left unset for entries that only need month granularity.
+  day?: number;
 }
 
 export interface SavingsGoal {

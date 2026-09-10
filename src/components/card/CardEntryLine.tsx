@@ -10,8 +10,9 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
   const [label, setLabel] = useState(entry.label);
   const [amount, setAmount] = useState(String(entry.amount));
   const [memo, setMemo] = useState(entry.memo ?? '');
+  const [day, setDay] = useState(entry.day ? String(entry.day) : '');
 
-  function commit(patch: { categoryId?: string } = {}) {
+  function commit(patch: { categoryId?: string; day?: number } = {}) {
     const parsed = Number(amount.replace(/,/g, ''));
     updateCardEntry(entry.id, {
       year: entry.year,
@@ -20,7 +21,13 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
       amount: Number.isFinite(parsed) ? parsed : 0,
       memo: memo.trim() || undefined,
       categoryId: 'categoryId' in patch ? patch.categoryId : entry.categoryId,
+      day: 'day' in patch ? patch.day : entry.day,
     });
+  }
+
+  function commitDay() {
+    const parsed = day ? Math.min(31, Math.max(1, Math.round(Number(day)))) : undefined;
+    commit({ day: Number.isFinite(parsed) ? parsed : undefined });
   }
 
   return (
@@ -39,6 +46,17 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
         onBlur={() => commit()}
         inputMode="numeric"
         placeholder="금액"
+      />
+      <input
+        className="w-16 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right"
+        value={day}
+        onChange={(e) => setDay(e.target.value)}
+        onBlur={commitDay}
+        inputMode="numeric"
+        type="number"
+        min={1}
+        max={31}
+        placeholder="일"
       />
       <CategorySelect
         value={entry.categoryId ?? ''}
