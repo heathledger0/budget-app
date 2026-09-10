@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { SectionType } from '../../types';
 import { SECTION_EMOJI, SECTION_LABELS, SECTION_ORDER } from '../../constants/categories';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { daysInMonth, monthlySummary, sectionDayTotal } from '../../lib/calculations';
+import { daysInMonth, monthlySummary, sectionDayTotal, withCardEntries } from '../../lib/calculations';
 import Money from '../common/Money';
 import Calendar from './Calendar';
 import SectionCard from './SectionCard';
@@ -11,7 +11,12 @@ import SectionCard from './SectionCard';
 export default function MonthlyEntryPage() {
   const { year, month, day, setDay } = useSelectionStore();
   const entries = useBudgetStore((s) => s.entries);
-  const summary = monthlySummary(entries, year, month);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
+  const combinedEntries = useMemo(
+    () => withCardEntries(entries, cardEntries),
+    [entries, cardEntries],
+  );
+  const summary = monthlySummary(combinedEntries, year, month);
   const [activeSection, setActiveSection] = useState<SectionType>('income');
 
   useEffect(() => {
@@ -30,7 +35,7 @@ export default function MonthlyEntryPage() {
         </p>
       </div>
 
-      <Calendar year={year} month={month} selectedDay={day} onSelectDay={setDay} entries={entries} />
+      <Calendar year={year} month={month} selectedDay={day} onSelectDay={setDay} entries={combinedEntries} />
 
       <div>
         <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -40,7 +45,7 @@ export default function MonthlyEntryPage() {
 
       <div className="flex gap-2 overflow-x-auto">
         {SECTION_ORDER.map((section) => {
-          const sectionTotal = sectionDayTotal(entries, section, year, month, day);
+          const sectionTotal = sectionDayTotal(combinedEntries, section, year, month, day);
           return (
             <button
               key={section}
