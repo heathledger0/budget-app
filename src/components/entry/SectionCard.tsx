@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import type { SectionType } from '../../types';
 import { SECTION_EMOJI, SECTION_LABELS, categoriesBySection } from '../../constants/categories';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { sectionDayTotal } from '../../lib/calculations';
+import { sectionDayTotal, withCardEntries } from '../../lib/calculations';
 import Money from '../common/Money';
 import CategoryRow from './CategoryRow';
 
@@ -17,8 +18,10 @@ export default function SectionCard({
   day: number;
 }) {
   const entries = useBudgetStore((s) => s.entries);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
+  const allEntries = useMemo(() => withCardEntries(entries, cardEntries), [entries, cardEntries]);
   const categories = categoriesBySection(section);
-  const total = sectionDayTotal(entries, section, year, month, day);
+  const total = sectionDayTotal(allEntries, section, year, month, day);
 
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
@@ -32,7 +35,14 @@ export default function SectionCard({
       </div>
       <div>
         {categories.map((category) => (
-          <CategoryRow key={category.id} category={category} year={year} month={month} day={day} />
+          <CategoryRow
+            key={category.id}
+            category={category}
+            year={year}
+            month={month}
+            day={day}
+            entries={allEntries}
+          />
         ))}
       </div>
     </div>

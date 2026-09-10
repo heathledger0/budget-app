@@ -30,6 +30,8 @@ interface CardEntryRow {
   label: string;
   amount: number;
   memo: string | null;
+  category_id: string | null;
+  day: number | null;
 }
 interface SavingsGoalRow {
   id: string;
@@ -68,6 +70,8 @@ const fromCardEntryRow = (row: CardEntryRow): CardEntry => ({
   label: row.label,
   amount: Number(row.amount),
   memo: row.memo ?? undefined,
+  categoryId: row.category_id ?? undefined,
+  day: row.day ?? undefined,
 });
 
 const fromSavingsGoalRow = (row: SavingsGoalRow): SavingsGoal => ({
@@ -326,6 +330,8 @@ export const useBudgetStore = create<BudgetState>((set) => ({
         label: entry.label,
         amount: entry.amount,
         memo: entry.memo ?? null,
+        category_id: entry.categoryId ?? null,
+        day: entry.day ?? null,
       })
       .select()
       .single();
@@ -343,6 +349,8 @@ export const useBudgetStore = create<BudgetState>((set) => ({
         label: patch.label,
         amount: patch.amount,
         memo: patch.memo ?? null,
+        category_id: patch.categoryId ?? null,
+        day: patch.day ?? null,
       })
       .eq('id', id)
       .select()

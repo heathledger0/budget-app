@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import type { CategoryDef } from '../../types';
+import { Link } from 'react-router-dom';
+import type { CategoryDef, Entry } from '../../types';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { categoryDayTotal } from '../../lib/calculations';
 import Money from '../common/Money';
@@ -10,13 +11,15 @@ export default function CategoryRow({
   year,
   month,
   day,
+  entries,
 }: {
   category: CategoryDef;
   year: number;
   month: number;
   day: number;
+  /** Cash entries plus categorized card entries (see withCardEntries), merged by the caller. */
+  entries: Entry[];
 }) {
-  const entries = useBudgetStore((s) => s.entries);
   const addEntry = useBudgetStore((s) => s.addEntry);
   const addFixedSeriesEntry = useBudgetStore((s) => s.addFixedSeriesEntry);
   const [newLabel, setNewLabel] = useState('');
@@ -24,11 +27,15 @@ export default function CategoryRow({
   const isFixed = category.section === 'fixed';
   const submittingRef = useRef(false);
 
-  const categoryEntries = entries
-    .filter(
-      (e) => e.categoryId === category.id && e.year === year && e.month === month && e.day === day,
-    )
+  const dayEntries = entries.filter(
+    (e) => e.categoryId === category.id && e.year === year && e.month === month && e.day === day,
+  );
+  // Card-sourced rows (see calculations.categorizedCardEntries) are synthetic and read-only here —
+  // they're edited on the 신용카드 트래커 page, identified by their "card-" id prefix.
+  const cashEntries = dayEntries
+    .filter((e) => !e.id.startsWith('card-'))
     .sort((a, b) => a.label.localeCompare(b.label));
+  const cardSourcedEntries = dayEntries.filter((e) => e.id.startsWith('card-'));
   const total = categoryDayTotal(entries, category.id, year, month, day);
 
   async function handleAdd() {
@@ -67,10 +74,31 @@ export default function CategoryRow({
           <Money amount={total} />
         </span>
       </div>
-      {categoryEntries.length > 0 && (
+      {cashEntries.length > 0 && (
         <div className="mt-1 pl-2">
-          {categoryEntries.map((entry) => (
+          {cashEntries.map((entry) => (
             <EntryLine key={entry.id} entry={entry} />
+          ))}
+        </div>
+      )}
+      {cardSourcedEntries.length > 0 && (
+        <div className="mt-1 flex flex-col gap-1 pl-2">
+          {cardSourcedEntries.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex items-center justify-between rounded bg-gray-50 dark:bg-gray-900/40 px-2 py-1 text-sm text-gray-500 dark:text-gray-400"
+            >
+              <span>{entry.label}</span>
+              <span className="flex items-center gap-2">
+                <Money amount={entry.amount} />
+                <Link
+                  to="/card"
+                  className="text-xs text-blue-500 hover:underline dark:text-blue-400"
+                >
+                  수정
+                </Link>
+              </span>
+            </div>
           ))}
         </div>
       )}

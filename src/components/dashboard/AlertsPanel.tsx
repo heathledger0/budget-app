@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { getBudgetAlerts, getUpcomingFixedExpenses } from '../../lib/alerts';
+import { withCardEntries } from '../../lib/calculations';
 import Money from '../common/Money';
 
 const NOTIFIED_KEY = 'budget-app:last-notified-date';
 
 export default function AlertsPanel({ year, month }: { year: number; month: number }) {
   const entries = useBudgetStore((s) => s.entries);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
   const budgets = useBudgetStore((s) => s.budgets);
+  const allEntries = useMemo(() => withCardEntries(entries, cardEntries), [entries, cardEntries]);
 
   const budgetAlerts = useMemo(
-    () => getBudgetAlerts(entries, budgets, year, month),
-    [entries, budgets, year, month],
+    () => getBudgetAlerts(allEntries, budgets, year, month),
+    [allEntries, budgets, year, month],
   );
   const upcoming = useMemo(
     () => getUpcomingFixedExpenses(entries, year, month, new Date()),

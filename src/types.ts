@@ -5,6 +5,9 @@ export interface CategoryDef {
   name: string;
   section: SectionType;
   emoji: string;
+  // Large one-off lump sums (deposits, etc.) that can be toggled out of monthly/annual stats
+  // since a single entry would otherwise dwarf everything else in the period.
+  oneOff?: boolean;
 }
 
 export interface Entry {
@@ -34,6 +37,12 @@ export interface CardEntry {
   label: string;
   amount: number;
   memo?: string;
+  // Optional category so a card purchase counts toward that category's totals directly,
+  // instead of separately re-entering it as a lump "카드대금" entry. Left unset (undefined),
+  // it stays purely in the card tracker's own running totals, as before.
+  categoryId?: string;
+  // Optional day-of-month (1-31). Left unset for entries that only need month granularity.
+  day?: number;
 }
 
 export interface SavingsGoal {

@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import type { SectionType } from '../../types';
 import { SECTION_EMOJI, SECTION_LABELS, categoriesBySection } from '../../constants/categories';
 import { useBudgetStore } from '../../store/useBudgetStore';
-import { sectionAnnualTotal } from '../../lib/calculations';
+import { sectionAnnualTotal, withCardEntries } from '../../lib/calculations';
 import { formatPercent } from '../../lib/format';
 import Money from '../common/Money';
 
@@ -19,7 +20,9 @@ function annualBudgetTotal(
 
 export default function AnnualBudgetSummary({ year }: { year: number }) {
   const entries = useBudgetStore((s) => s.entries);
+  const cardEntries = useBudgetStore((s) => s.cardEntries);
   const budgets = useBudgetStore((s) => s.budgets);
+  const allEntries = useMemo(() => withCardEntries(entries, cardEntries), [entries, cardEntries]);
 
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
@@ -41,7 +44,7 @@ export default function AnnualBudgetSummary({ year }: { year: number }) {
             {EXPENSE_SECTIONS.map((section) => {
               const catIds = new Set(categoriesBySection(section).map((c) => c.id));
               const budgetTotal = annualBudgetTotal(budgets, catIds, year);
-              const actualTotal = sectionAnnualTotal(entries, section, year);
+              const actualTotal = sectionAnnualTotal(allEntries, section, year);
               const over = budgetTotal > 0 && actualTotal / budgetTotal > 1;
               return (
                 <tr
