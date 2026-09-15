@@ -45,10 +45,10 @@ export default function CreditCardPage() {
       setNewAmount('');
       setNewCategoryId('');
       setNewDay('');
-    } catch {
-      setError(
-        '저장에 실패했어요. Supabase에서 card_entries 테이블 마이그레이션(schema.sql)을 실행했는지 확인해주세요.',
-      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const hint = (err as { hint?: string } | undefined)?.hint;
+      setError(`저장 실패: ${message}${hint ? ` (${hint})` : ''}`);
     } finally {
       submittingRef.current = false;
     }
