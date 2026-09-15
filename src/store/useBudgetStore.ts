@@ -335,7 +335,10 @@ export const useBudgetStore = create<BudgetState>((set) => ({
       })
       .select()
       .single();
-    if (error || !data) return console.error(error);
+    if (error || !data) {
+      console.error(error);
+      throw error ?? new Error('카드 항목 저장에 실패했습니다.');
+    }
     set((state) => ({ cardEntries: [...state.cardEntries, fromCardEntryRow(data as CardEntryRow)] }));
   },
 
@@ -355,7 +358,10 @@ export const useBudgetStore = create<BudgetState>((set) => ({
       .eq('id', id)
       .select()
       .single();
-    if (error || !data) return console.error(error);
+    if (error || !data) {
+      console.error(error);
+      throw error ?? new Error('카드 항목 저장에 실패했습니다.');
+    }
     const updated = fromCardEntryRow(data as CardEntryRow);
     set((state) => ({ cardEntries: state.cardEntries.map((e) => (e.id === id ? updated : e)) }));
   },
