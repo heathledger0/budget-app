@@ -24,7 +24,11 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
       memo: memo.trim() || undefined,
       categoryId: 'categoryId' in patch ? patch.categoryId : entry.categoryId,
       day: 'day' in patch ? patch.day : entry.day,
-    }).catch(() => setError('저장 실패 — Supabase 마이그레이션을 확인해주세요.'));
+    }).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      const hint = (err as { hint?: string } | undefined)?.hint;
+      setError(`저장 실패: ${message}${hint ? ` (${hint})` : ''}`);
+    });
   }
 
   function commitDay() {
