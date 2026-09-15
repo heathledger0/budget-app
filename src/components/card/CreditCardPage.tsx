@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
+import { describeError } from '../../lib/format';
 import Money from '../common/Money';
 import CardEntryLine from './CardEntryLine';
 import CategorySelect from './CategorySelect';
@@ -46,9 +47,7 @@ export default function CreditCardPage() {
       setNewCategoryId('');
       setNewDay('');
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      const hint = (err as { hint?: string } | undefined)?.hint;
-      setError(`저장 실패: ${message}${hint ? ` (${hint})` : ''}`);
+      setError(`저장 실패: ${describeError(err)}`);
     } finally {
       submittingRef.current = false;
     }

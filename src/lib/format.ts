@@ -19,3 +19,23 @@ export function formatChange(current: number, previous: number): string {
   const pct = Math.round(((current - previous) / Math.abs(previous)) * 100);
   return pct > 0 ? `+${pct}%` : `${pct}%`;
 }
+
+// Best-effort human-readable message for a caught error, including Supabase/Postgrest
+// error-like objects that aren't real Error instances (so `instanceof Error` misses them
+// and String(err) would otherwise just print "[object Object]").
+export function describeError(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'object' && err !== null) {
+    const obj = err as Record<string, unknown>;
+    if (typeof obj.message === 'string' && obj.message) {
+      const hint = typeof obj.hint === 'string' && obj.hint ? ` (${obj.hint})` : '';
+      return `${obj.message}${hint}`;
+    }
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return String(err);
+    }
+  }
+  return String(err);
+}
