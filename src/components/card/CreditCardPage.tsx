@@ -13,6 +13,7 @@ export default function CreditCardPage() {
   const [newAmount, setNewAmount] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newDay, setNewDay] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const submittingRef = useRef(false);
 
   const monthEntries = cardEntries
@@ -30,6 +31,7 @@ export default function CreditCardPage() {
     if (!newAmount || !Number.isFinite(parsed) || parsed === 0) return;
     const parsedDay = newDay ? Math.min(31, Math.max(1, Math.round(Number(newDay)))) : undefined;
     submittingRef.current = true;
+    setError(null);
     try {
       await addCardEntry({
         year,
@@ -43,6 +45,10 @@ export default function CreditCardPage() {
       setNewAmount('');
       setNewCategoryId('');
       setNewDay('');
+    } catch {
+      setError(
+        '저장에 실패했어요. Supabase에서 card_entries 테이블 마이그레이션(schema.sql)을 실행했는지 확인해주세요.',
+      );
     } finally {
       submittingRef.current = false;
     }
@@ -88,6 +94,11 @@ export default function CreditCardPage() {
         {monthEntries.map((entry) => (
           <CardEntryLine key={entry.id} entry={entry} />
         ))}
+        {error && (
+          <p className="mt-2 rounded bg-red-50 px-2 py-1.5 text-sm text-red-600 dark:bg-red-950 dark:text-red-300">
+            {error}
+          </p>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <input
             className="min-w-0 flex-1 rounded border border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
