@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CardEntry } from '../../types';
 import { useBudgetStore } from '../../store/useBudgetStore';
+import { describeError } from '../../lib/format';
 import Money from '../common/Money';
 import CategorySelect from './CategorySelect';
 
@@ -25,9 +26,7 @@ export default function CardEntryLine({ entry }: { entry: CardEntry }) {
       categoryId: 'categoryId' in patch ? patch.categoryId : entry.categoryId,
       day: 'day' in patch ? patch.day : entry.day,
     }).catch((err: unknown) => {
-      const message = err instanceof Error ? err.message : String(err);
-      const hint = (err as { hint?: string } | undefined)?.hint;
-      setError(`저장 실패: ${message}${hint ? ` (${hint})` : ''}`);
+      setError(`저장 실패: ${describeError(err)}`);
     });
   }
 
