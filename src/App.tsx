@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import AuthGate from './components/auth/AuthGate';
+import UpdatePrompt from './components/common/UpdatePrompt';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import DashboardPage from './components/dashboard/DashboardPage';
@@ -14,29 +15,32 @@ import SavingsGoalsPage from './components/savings/SavingsGoalsPage';
 
 function App() {
   return (
-    <AuthGate>
-      <HashRouter>
-        <div className="flex min-h-screen flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
-          <Sidebar />
-          <div className="flex flex-1 flex-col min-w-0">
-            <Header />
-            <main className="flex-1 p-4 md:p-6">
-              <Routes>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/entry" element={<MonthlyEntryPage />} />
-                <Route path="/budget" element={<BudgetPage />} />
-                <Route path="/monthly-report" element={<MonthlyReportPage />} />
-                <Route path="/report" element={<ReportPage />} />
-                <Route path="/card" element={<CreditCardPage />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/household" element={<HouseholdPage />} />
-                <Route path="/savings" element={<SavingsGoalsPage />} />
-              </Routes>
-            </main>
+    <>
+      <UpdatePrompt />
+      <AuthGate>
+        <HashRouter>
+          <div className="flex min-h-screen flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
+            <Sidebar />
+            <div className="flex flex-1 flex-col min-w-0">
+              <Header />
+              <main className="flex-1 p-4 md:p-6">
+                <Routes>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/entry" element={<MonthlyEntryPage />} />
+                  <Route path="/budget" element={<BudgetPage />} />
+                  <Route path="/monthly-report" element={<MonthlyReportPage />} />
+                  <Route path="/report" element={<ReportPage />} />
+                  <Route path="/card" element={<CreditCardPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/household" element={<HouseholdPage />} />
+                  <Route path="/savings" element={<SavingsGoalsPage />} />
+                </Routes>
+              </main>
+            </div>
           </div>
-        </div>
-      </HashRouter>
-    </AuthGate>
+        </HashRouter>
+      </AuthGate>
+    </>
   );
 }
 
