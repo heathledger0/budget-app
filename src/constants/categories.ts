@@ -39,7 +39,7 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 'utilities', name: '공과금 및 기타', section: 'fixed', emoji: '💡' },
 
   // 저축/투자
-  { id: 'deposit', name: '보증금', section: 'saving', emoji: '🏠', oneOff: true },
+  { id: 'deposit', name: '보증금 납부', section: 'saving', emoji: '🏠', oneOff: true },
   { id: 'housingSubscription', name: '주택청약', section: 'saving', emoji: '🏘️' },
   { id: 'installmentSaving', name: '적금', section: 'saving', emoji: '🐷' },
   { id: 'weddingSaving', name: '웨딩적금', section: 'saving', emoji: '💍' },
