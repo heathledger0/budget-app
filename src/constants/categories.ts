@@ -25,10 +25,12 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 'interest', name: '이자', section: 'income', emoji: '🏦' },
   { id: 'insuranceRefund', name: '보험/환급/적금만기', section: 'income', emoji: '🎁' },
   { id: 'depositRefund', name: '보증금 환급', section: 'income', emoji: '🏠', oneOff: true },
+  { id: 'loanReceived', name: '대출금 수령', section: 'income', emoji: '🏦', oneOff: true },
   { id: 'etcIncome', name: '기타', section: 'income', emoji: '➕' },
 
   // 고정지출
   { id: 'loanInterest', name: '대출이자', section: 'fixed', emoji: '🏠' },
+  { id: 'loanPrincipal', name: '대출원금상환', section: 'fixed', emoji: '🏦' },
   { id: 'telecom', name: '통신비', section: 'fixed', emoji: '📱' },
   { id: 'healthInsurance', name: '실손보험', section: 'fixed', emoji: '🏥' },
   { id: 'carInsurance', name: '자동차보험', section: 'fixed', emoji: '🚗' },

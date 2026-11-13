@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { describeError } from '../../lib/format';
+import { recognizeReceipt } from '../../lib/receiptOcr';
 import Money from '../common/Money';
 import CardEntryLine from './CardEntryLine';
 import CategorySelect from './CategorySelect';
@@ -15,7 +16,9 @@ export default function CreditCardPage() {
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newDay, setNewDay] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [ocrBusy, setOcrBusy] = useState(false);
   const submittingRef = useRef(false);
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
 
   const monthEntries = cardEntries
     .filter((e) => e.year === year && e.month === month)
@@ -53,6 +56,26 @@ export default function CreditCardPage() {
     }
   }
 
+  async function handleScreenshot(file: File) {
+    setOcrBusy(true);
+    setError(null);
+    try {
+      const parsed = await recognizeReceipt(file);
+      if (parsed.label) setNewLabel(parsed.label);
+      if (parsed.amount) setNewAmount(String(parsed.amount));
+      if (parsed.day) setNewDay(String(parsed.day));
+      if (parsed.categoryId) setNewCategoryId(parsed.categoryId);
+      if (!parsed.amount) {
+        setError('스크린샷에서 금액을 읽지 못했어요. 직접 입력하거나 수정해주세요.');
+      }
+    } catch (err) {
+      setError(`인식 실패: ${describeError(err)}`);
+    } finally {
+      setOcrBusy(false);
+      if (screenshotInputRef.current) screenshotInputRef.current.value = '';
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -63,6 +86,33 @@ export default function CreditCardPage() {
           카테고리를 고르지 않으면 예전처럼 이 트래커에서만 누적됩니다. 일(날짜)은 선택 사항으로,
           비워두면 월 단위로만 집계됩니다.
         </p>
+      </div>
+
+      <div className="rounded-lg border border-dashed border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 p-4">
+        <input
+          ref={screenshotInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleScreenshot(file);
+          }}
+        />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            📷 카드 승인 문자나 토스 앱 내역을 캡처해서 올리면 사용처·금액·날짜를 자동으로 읽어
+            아래 입력칸에 채워드려요. 정확하지 않을 수 있으니 추가하기 전에 꼭 확인해주세요.
+          </p>
+          <button
+            type="button"
+            onClick={() => screenshotInputRef.current?.click()}
+            disabled={ocrBusy}
+            className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {ocrBusy ? '인식 중...' : '스크린샷으로 채우기'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
