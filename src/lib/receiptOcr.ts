@@ -31,6 +31,7 @@ const CATEGORY_KEYWORDS: { keywords: string[]; categoryId: string }[] = [
   { keywords: ['병원', '의원', '약국', '한의원', '치과'], categoryId: 'medical' },
   { keywords: ['skt', 'kt', 'lgu+', '엘지유플러스', '통신'], categoryId: 'telecom' },
   { keywords: ['넷플릭스', '왓챠', '유튜브', '멜론', '지니뮤직', 'netflix'], categoryId: 'subscription' },
+  { keywords: ['cgv', '롯데시네마', '메가박스', '영화', '공연', '전시', '놀이공원', '에버랜드', '롯데월드'], categoryId: 'culture' },
 ];
 
 function extractAmount(text: string): number | undefined {

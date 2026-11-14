@@ -59,6 +59,7 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 'events', name: '경조사비', section: 'variable', emoji: '💐' },
   { id: 'transport', name: '교통비', section: 'variable', emoji: '🚌' },
   { id: 'clothing', name: '의류/미용', section: 'variable', emoji: '👗' },
+  { id: 'culture', name: '문화생활/여가', section: 'variable', emoji: '🎬' },
   { id: 'medical', name: '의료비', section: 'variable', emoji: '💊' },
   { id: 'cardBill', name: '카드대금', section: 'variable', emoji: '💳' },
   { id: 'etcVariable', name: '기타', section: 'variable', emoji: '🔖' },
