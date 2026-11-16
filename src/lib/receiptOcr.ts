@@ -24,8 +24,12 @@ const NOISE_LINE_PATTERNS = [
   /^\d{1,2}\s*[:.]\s*\d{2}$/, // phone status-bar clock (e.g. "6:37")
 ];
 
-// Marks the start of each Korean card-approval text in a messages-app screenshot.
-const MESSAGE_MARKER = /web\s*발신/gi;
+// Markers that can each signal the start of a new Korean card-approval text in a
+// messages-app screenshot. OCR of the bracketed, mixed-script "[Web발신]" tag is
+// unreliable, especially on dark-mode screenshots, so "승인" (always present in the
+// approval line itself, pure Hangul) acts as a second, independent signal — a message
+// is still found as long as at least one of the two is read correctly.
+const MESSAGE_MARKERS = [/web\s*발신/gi, /승인/g];
 
 const CATEGORY_KEYWORDS: { keywords: string[]; categoryId: string }[] = [
   { keywords: ['스타벅스', '이디야', '투썸', '커피', '카페', '빽다방', '메가커피', '커피빈'], categoryId: 'cafe' },
@@ -78,6 +82,40 @@ function guessCategory(label: string | undefined): string | undefined {
   return undefined;
 }
 
+// Tesseract reads light-text-on-dark screenshots (e.g. a dark-mode messages app)
+// much less reliably than normal dark-text-on-light ones. If the image is mostly
+// dark, invert it before handing it to OCR; on any failure (unsupported browser API,
+// tainted canvas, etc.) fall back to the original image untouched.
+async function preprocessImage(image: File | Blob): Promise<File | Blob> {
+  try {
+    const bitmap = await createImageBitmap(image);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return image;
+    ctx.drawImage(bitmap, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const { data } = imageData;
+    let total = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      total += (data[i] + data[i + 1] + data[i + 2]) / 3;
+    }
+    const avgBrightness = total / (data.length / 4);
+    if (avgBrightness >= 110) return image;
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 255 - data[i];
+      data[i + 1] = 255 - data[i + 1];
+      data[i + 2] = 255 - data[i + 2];
+    }
+    ctx.putImageData(imageData, 0, 0);
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    return blob ?? image;
+  } catch {
+    return image;
+  }
+}
+
 function parseBlock(block: string): ParsedReceipt {
   const amount = extractAmount(block);
   const label = extractLabel(block);
@@ -87,16 +125,28 @@ function parseBlock(block: string): ParsedReceipt {
 }
 
 // Splits OCR text from a messages-app screenshot into one chunk per card-approval
-// text (each starts with "Web발신"), dropping anything before the first one (phone
-// status bar, back button, etc.). A screenshot with no such marker — a single receipt
-// or a bank app's own screen — comes back as one chunk covering the whole text.
+// text, dropping anything before the first one (phone status bar, back button, etc.).
+// A screenshot with no marker at all — a single receipt or a bank app's own screen —
+// comes back as one chunk covering the whole text.
 function splitMessageBlocks(text: string): string[] {
   const starts: number[] = [];
-  let match: RegExpExecArray | null;
-  MESSAGE_MARKER.lastIndex = 0;
-  while ((match = MESSAGE_MARKER.exec(text))) starts.push(match.index);
+  for (const marker of MESSAGE_MARKERS) {
+    marker.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = marker.exec(text))) starts.push(match.index);
+  }
   if (starts.length === 0) return [text];
-  return starts.map((start, i) => text.slice(start, starts[i + 1] ?? text.length));
+  starts.sort((a, b) => a - b);
+  // "Web발신" and "승인" of the same message usually land within ~20-30 characters
+  // of each other; collapse matches that close together into a single boundary so
+  // one message isn't split into two just because both of its markers were read.
+  const boundaries: number[] = [];
+  for (const start of starts) {
+    if (boundaries.length === 0 || start - boundaries[boundaries.length - 1] > 40) {
+      boundaries.push(start);
+    }
+  }
+  return boundaries.map((start, i) => text.slice(start, boundaries[i + 1] ?? text.length));
 }
 
 // Runs OCR on a card-approval text / bank app screenshot and best-effort extracts the
@@ -110,7 +160,8 @@ export async function recognizeReceipts(
 ): Promise<{ rawText: string; items: ParsedReceipt[] }> {
   const worker = await createWorker('kor+eng');
   try {
-    const { data } = await worker.recognize(image);
+    const processed = await preprocessImage(image);
+    const { data } = await worker.recognize(processed);
     const rawText = data.text;
     const blocks = splitMessageBlocks(rawText);
     const parsed = blocks.map(parseBlock).filter((item) => item.amount !== undefined);
