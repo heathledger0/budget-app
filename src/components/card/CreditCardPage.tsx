@@ -2,10 +2,26 @@ import { useRef, useState } from 'react';
 import { useSelectionStore } from '../../store/useSelectionStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { describeError } from '../../lib/format';
-import { recognizeReceipt } from '../../lib/receiptOcr';
+import { recognizeReceipts, type ParsedReceipt } from '../../lib/receiptOcr';
 import Money from '../common/Money';
 import CardEntryLine from './CardEntryLine';
 import CategorySelect from './CategorySelect';
+
+interface PendingDraft {
+  label: string;
+  amount: string;
+  day: string;
+  categoryId: string;
+}
+
+function toDraft(item: ParsedReceipt): PendingDraft {
+  return {
+    label: item.label ?? '',
+    amount: item.amount ? String(item.amount) : '',
+    day: item.day ? String(item.day) : '',
+    categoryId: item.categoryId ?? '',
+  };
+}
 
 export default function CreditCardPage() {
   const { year, month } = useSelectionStore();
@@ -15,6 +31,7 @@ export default function CreditCardPage() {
   const [newAmount, setNewAmount] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newDay, setNewDay] = useState('');
+  const [pending, setPending] = useState<PendingDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
   const submittingRef = useRef(false);
@@ -60,13 +77,20 @@ export default function CreditCardPage() {
     setOcrBusy(true);
     setError(null);
     try {
-      const parsed = await recognizeReceipt(file);
-      if (parsed.label) setNewLabel(parsed.label);
-      if (parsed.amount) setNewAmount(String(parsed.amount));
-      if (parsed.day) setNewDay(String(parsed.day));
-      if (parsed.categoryId) setNewCategoryId(parsed.categoryId);
-      if (!parsed.amount) {
-        setError('스크린샷에서 금액을 읽지 못했어요. 직접 입력하거나 수정해주세요.');
+      const { items } = await recognizeReceipts(file);
+      if (items.length <= 1) {
+        const parsed = items[0];
+        if (parsed?.label) setNewLabel(parsed.label);
+        if (parsed?.amount) setNewAmount(String(parsed.amount));
+        if (parsed?.day) setNewDay(String(parsed.day));
+        if (parsed?.categoryId) setNewCategoryId(parsed.categoryId);
+        if (!parsed?.amount) {
+          setError('스크린샷에서 금액을 읽지 못했어요. 직접 입력하거나 수정해주세요.');
+        }
+      } else {
+        // Several card-approval texts in one screenshot (e.g. a messages app thread):
+        // list each as its own draft instead of mixing fields from different texts.
+        setPending(items.map(toDraft));
       }
     } catch (err) {
       setError(`인식 실패: ${describeError(err)}`);
@@ -74,6 +98,65 @@ export default function CreditCardPage() {
       setOcrBusy(false);
       if (screenshotInputRef.current) screenshotInputRef.current.value = '';
     }
+  }
+
+  function updatePending(index: number, patch: Partial<PendingDraft>) {
+    setPending((items) => items.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+  }
+
+  function discardPending(index: number) {
+    setPending((items) => items.filter((_, i) => i !== index));
+  }
+
+  async function addPendingAt(index: number) {
+    const item = pending[index];
+    const parsed = Number(item.amount.replace(/,/g, ''));
+    if (!item.amount || !Number.isFinite(parsed) || parsed === 0) {
+      setError('금액을 확인해주세요.');
+      return;
+    }
+    const parsedDay = item.day ? Math.min(31, Math.max(1, Math.round(Number(item.day)))) : undefined;
+    setError(null);
+    try {
+      await addCardEntry({
+        year,
+        month,
+        label: item.label.trim() || '카드 사용',
+        amount: parsed,
+        categoryId: item.categoryId || undefined,
+        day: Number.isFinite(parsedDay) ? parsedDay : undefined,
+      });
+      discardPending(index);
+    } catch (err) {
+      setError(`저장 실패: ${describeError(err)}`);
+    }
+  }
+
+  async function addAllPending() {
+    setError(null);
+    const remaining: PendingDraft[] = [];
+    for (const item of pending) {
+      const parsed = Number(item.amount.replace(/,/g, ''));
+      if (!item.amount || !Number.isFinite(parsed) || parsed === 0) {
+        remaining.push(item);
+        continue;
+      }
+      const parsedDay = item.day ? Math.min(31, Math.max(1, Math.round(Number(item.day)))) : undefined;
+      try {
+        await addCardEntry({
+          year,
+          month,
+          label: item.label.trim() || '카드 사용',
+          amount: parsed,
+          categoryId: item.categoryId || undefined,
+          day: Number.isFinite(parsedDay) ? parsedDay : undefined,
+        });
+      } catch (err) {
+        setError(`저장 실패: ${describeError(err)}`);
+        remaining.push(item);
+      }
+    }
+    setPending(remaining);
   }
 
   return (
@@ -102,7 +185,8 @@ export default function CreditCardPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-blue-700 dark:text-blue-300">
             📷 카드 승인 문자나 토스 앱 내역을 캡처해서 올리면 사용처·금액·날짜를 자동으로 읽어
-            아래 입력칸에 채워드려요. 정확하지 않을 수 있으니 추가하기 전에 꼭 확인해주세요.
+            아래 입력칸에 채워드려요. 문자함을 통째로 캡처해서 승인 문자가 여러 건 보여도 각각
+            구분해서 인식해요. 정확하지 않을 수 있으니 추가하기 전에 꼭 확인해주세요.
           </p>
           <button
             type="button"
@@ -114,6 +198,72 @@ export default function CreditCardPage() {
           </button>
         </div>
       </div>
+
+      {pending.length > 0 && (
+        <div className="rounded-lg border border-dashed border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 p-4">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              스크린샷에서 {pending.length}건의 결제 내역을 찾았어요. 확인 후 추가해주세요.
+            </p>
+            <button
+              type="button"
+              onClick={addAllPending}
+              className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              모두 추가
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {pending.map((item, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-2">
+                <input
+                  className="min-w-0 flex-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
+                  placeholder="사용처"
+                  value={item.label}
+                  onChange={(e) => updatePending(i, { label: e.target.value })}
+                />
+                <input
+                  className="w-28 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right text-sm"
+                  placeholder="금액"
+                  inputMode="numeric"
+                  value={item.amount}
+                  onChange={(e) => updatePending(i, { amount: e.target.value })}
+                />
+                <input
+                  className="w-20 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-right text-sm"
+                  placeholder="일(선택)"
+                  inputMode="numeric"
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={item.day}
+                  onChange={(e) => updatePending(i, { day: e.target.value })}
+                />
+                <CategorySelect
+                  value={item.categoryId}
+                  onChange={(categoryId) => updatePending(i, { categoryId })}
+                  className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => addPendingAt(i)}
+                  className="shrink-0 rounded bg-blue-50 px-2 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
+                >
+                  추가
+                </button>
+                <button
+                  type="button"
+                  onClick={() => discardPending(i)}
+                  className="shrink-0 rounded px-2 py-1 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:text-gray-500 dark:hover:bg-red-950 dark:hover:text-red-400"
+                  aria-label="무시"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
