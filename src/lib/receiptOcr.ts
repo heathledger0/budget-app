@@ -21,7 +21,11 @@ const NOISE_LINE_PATTERNS = [
   /잔액|누적|한도/,
   /^[\d/:.\s%,-]+$/, // pure date/time/number lines
   /원\s*$/, // amount-only lines
+  /^\d{1,2}\s*[:.]\s*\d{2}$/, // phone status-bar clock (e.g. "6:37")
 ];
+
+// Marks the start of each Korean card-approval text in a messages-app screenshot.
+const MESSAGE_MARKER = /web\s*발신/gi;
 
 const CATEGORY_KEYWORDS: { keywords: string[]; categoryId: string }[] = [
   { keywords: ['스타벅스', '이디야', '투썸', '커피', '카페', '빽다방', '메가커피', '커피빈'], categoryId: 'cafe' },
@@ -31,6 +35,7 @@ const CATEGORY_KEYWORDS: { keywords: string[]; categoryId: string }[] = [
   { keywords: ['병원', '의원', '약국', '한의원', '치과'], categoryId: 'medical' },
   { keywords: ['skt', 'kt', 'lgu+', '엘지유플러스', '통신'], categoryId: 'telecom' },
   { keywords: ['넷플릭스', '왓챠', '유튜브', '멜론', '지니뮤직', 'netflix'], categoryId: 'subscription' },
+  { keywords: ['cgv', '롯데시네마', '메가박스', '영화', '공연', '전시', '놀이공원', '에버랜드', '롯데월드'], categoryId: 'culture' },
 ];
 
 function extractAmount(text: string): number | undefined {
@@ -73,20 +78,43 @@ function guessCategory(label: string | undefined): string | undefined {
   return undefined;
 }
 
+function parseBlock(block: string): ParsedReceipt {
+  const amount = extractAmount(block);
+  const label = extractLabel(block);
+  const day = extractDay(block);
+  const categoryId = guessCategory(label);
+  return { rawText: block, amount, label, day, categoryId };
+}
+
+// Splits OCR text from a messages-app screenshot into one chunk per card-approval
+// text (each starts with "Web발신"), dropping anything before the first one (phone
+// status bar, back button, etc.). A screenshot with no such marker — a single receipt
+// or a bank app's own screen — comes back as one chunk covering the whole text.
+function splitMessageBlocks(text: string): string[] {
+  const starts: number[] = [];
+  let match: RegExpExecArray | null;
+  MESSAGE_MARKER.lastIndex = 0;
+  while ((match = MESSAGE_MARKER.exec(text))) starts.push(match.index);
+  if (starts.length === 0) return [text];
+  return starts.map((start, i) => text.slice(start, starts[i + 1] ?? text.length));
+}
+
 // Runs OCR on a card-approval text / bank app screenshot and best-effort extracts the
-// amount, merchant label, day, and a guessed category. Accuracy depends heavily on the
-// screenshot's layout, so callers should treat the result as a prefill to confirm/edit,
-// never as a final value.
-export async function recognizeReceipt(image: File | Blob): Promise<ParsedReceipt> {
+// amount, merchant label, day, and a guessed category for each transaction found.
+// A screenshot of several stacked "Web발신" texts (e.g. a messages app thread) yields
+// one item per text instead of mixing fields from different transactions together.
+// Accuracy depends heavily on the screenshot's layout, so callers should treat every
+// item as a prefill to confirm/edit, never as a final value.
+export async function recognizeReceipts(
+  image: File | Blob,
+): Promise<{ rawText: string; items: ParsedReceipt[] }> {
   const worker = await createWorker('kor+eng');
   try {
     const { data } = await worker.recognize(image);
     const rawText = data.text;
-    const amount = extractAmount(rawText);
-    const label = extractLabel(rawText);
-    const day = extractDay(rawText);
-    const categoryId = guessCategory(label);
-    return { rawText, amount, label, day, categoryId };
+    const blocks = splitMessageBlocks(rawText);
+    const parsed = blocks.map(parseBlock).filter((item) => item.amount !== undefined);
+    return { rawText, items: parsed.length > 0 ? parsed : [parseBlock(rawText)] };
   } finally {
     await worker.terminate();
   }
