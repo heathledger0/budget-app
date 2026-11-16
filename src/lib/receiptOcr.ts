@@ -11,17 +11,30 @@ export interface ParsedReceipt {
 // Lines that mention these nearby are a running balance/limit, not the actual charge amount.
 const BALANCE_KEYWORDS = ['잔액', '누적', '한도', '포인트'];
 
-// Boilerplate lines common in Korean card-approval texts / bank app screenshots —
-// never the merchant name, so they're excluded when guessing the label.
-const NOISE_LINE_PATTERNS = [
-  /web\s*발신/i,
-  /승인/,
-  /일시불|할부/,
-  /카드/,
-  /잔액|누적|한도/,
-  /^[\d/:.\s%,-]+$/, // pure date/time/number lines
-  /원\s*$/, // amount-only lines
-  /^\d{1,2}\s*[:.]\s*\d{2}$/, // phone status-bar clock (e.g. "6:37")
+// Boilerplate substrings common in Korean card-approval texts / messages-app
+// screenshots. These are stripped out (not whole lines dropped) when guessing the
+// label, because the merchant name is frequently on the SAME OCR line as one of
+// them — e.g. "11/13 16:51 동아마트 누적1,769,980원" has the merchant name sharing a
+// line with the running-total amount, so dropping that whole line would lose the
+// merchant name too.
+const NOISE_SUBSTRING_PATTERNS = [
+  // "하나2*6*승인 권*혁" — issuer name + masked card digits + 승인 + masked cardholder
+  // name, as one unit, before falling back to the smaller pieces below individually.
+  /[가-힣]{1,4}\s*\d\s*\*\s*\d\s*\*?\s*승인\s*[가-힣]\s*\*\s*[가-힣]{1,2}/g,
+  /\[[^\]]*\]/g, // "[Web발신]"
+  /web\s*발신/gi,
+  /\d\s*\*\s*\d(?:\s*\*)?/g, // masked card digits, e.g. "2*6*"
+  /승인/g,
+  /[가-힣]\s*\*\s*[가-힣]{1,2}/g, // any remaining masked name fragment, e.g. "권*혁"
+  /일시불|할부/g,
+  /(?:잔액|누적|한도|포인트)\s*[\d,]+\s*원?/g, // running balance/limit + its amount
+  /[\d]{1,3}(?:,\d{3})+\s*원|\d{4,}\s*원/g, // any "N,NNN원"/"NNNN원" amount
+  /\d{1,2}\s*[/.]\s*\d{1,2}(?:\s*\d{1,2}\s*[:.]\s*\d{2})?/g, // date (+ optional time)
+  /\(?\s*(오늘|어제|그제)\s*\)?/g, // relative-day timestamp divider prefix
+  /오전|오후/g,
+  /\d{1,2}\s*[:.]\s*\d{2}/g, // any remaining stray time, incl. phone status-bar clock
+  /알\s*수\s*없는\s*발신자[\s\S]{0,60}?스팸일\s*수\s*있습니다\.?/g, // unknown-sender warning
+  /카드/g,
 ];
 
 // Markers that can each signal the start of a new Korean card-approval text in a
@@ -55,14 +68,14 @@ function extractAmount(text: string): number | undefined {
 }
 
 function extractLabel(text: string): string | undefined {
-  const lines = text
+  let cleaned = text;
+  for (const pattern of NOISE_SUBSTRING_PATTERNS) {
+    cleaned = cleaned.replace(pattern, ' ');
+  }
+  const candidates = cleaned
     .split('\n')
     .map((l) => l.trim())
-    .filter(Boolean);
-  const candidates = lines.filter((line) => {
-    if (NOISE_LINE_PATTERNS.some((p) => p.test(line))) return false;
-    return /[가-힣a-zA-Z]{2,}/.test(line);
-  });
+    .filter((l) => /[가-힣a-zA-Z]{2,}/.test(l));
   return [...candidates].sort((a, b) => b.length - a.length)[0];
 }
 
