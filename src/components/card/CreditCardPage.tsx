@@ -139,6 +139,7 @@ export default function CreditCardPage() {
       const parsed = Number(item.amount.replace(/,/g, ''));
       if (!item.amount || !Number.isFinite(parsed) || parsed === 0) {
         remaining.push(item);
+        setError('금액이 비어 있는 항목은 추가하지 않았어요. 금액을 입력한 뒤 다시 추가해주세요.');
         continue;
       }
       const parsedDay = item.day ? Math.min(31, Math.max(1, Math.round(Number(item.day)))) : undefined;
