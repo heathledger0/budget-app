@@ -6,6 +6,7 @@ import { useBudgetStore } from '../../store/useBudgetStore';
 import { daysInMonth, monthlySummary, sectionDayTotal, withCardEntries } from '../../lib/calculations';
 import Money from '../common/Money';
 import Calendar from './Calendar';
+import MessageImport from './MessageImport';
 import SectionCard from './SectionCard';
 
 export default function MonthlyEntryPage() {
@@ -34,6 +35,8 @@ export default function MonthlyEntryPage() {
           달력에서 날짜를 선택하고, 카테고리별로 항목명과 금액을 입력해 추가하세요.
         </p>
       </div>
+
+      <MessageImport />
 
       <Calendar year={year} month={month} selectedDay={day} onSelectDay={setDay} entries={combinedEntries} />
 
