@@ -7,10 +7,14 @@ export default function CategorySelect({
   value,
   onChange,
   className,
+  sections = EXPENSE_SECTIONS,
+  emptyLabel = '미분류',
 }: {
-  value: string; // '' means uncategorized (stays purely in the card tracker)
+  value: string; // '' means no category picked (for card entries: stays purely in the card tracker)
   onChange: (categoryId: string) => void;
   className?: string;
+  sections?: SectionType[];
+  emptyLabel?: string;
 }) {
   return (
     <select
@@ -18,8 +22,8 @@ export default function CategorySelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
-      <option value="">미분류</option>
-      {EXPENSE_SECTIONS.map((section) => (
+      <option value="">{emptyLabel}</option>
+      {sections.map((section) => (
         <optgroup key={section} label={SECTION_LABELS[section]}>
           {categoriesBySection(section).map((c) => (
             <option key={c.id} value={c.id}>
